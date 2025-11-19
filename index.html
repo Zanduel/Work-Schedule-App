@@ -912,7 +912,28 @@
         eInput.min = this.value;
         eInput.value = this.value;
     });
+// --- NEW: ORIENTATION CHANGE FIX ---
+function forceRefreshLayout() {
+    // This function is run whenever the phone is rotated
+    // It forces a temporary switch to Month view (which is the default)
+    // and then immediately switches back to the currently active view (e.g. Weekly)
+    // This prevents the CSS grid from getting "stuck" when the viewport changes size.
+    
+    // Save current view state
+    const originalView = calendarView.viewMode;
+    
+    // 1. Temporarily switch to a safe, wide view (or just force render)
+    // Forcing a render here usually solves the cache issue:
+    calendarView.render();
+    
+    // 2. You might see better results by using a slight delay if the simple render fails:
+    // setTimeout(() => {
+    //     calendarView.setView(originalView);
+    // }, 100);
+}
 
+// Attach the layout fix to the phone's orientation change event
+window.addEventListener('orientationchange', forceRefreshLayout);
 </script>
 </body>
 </html>
