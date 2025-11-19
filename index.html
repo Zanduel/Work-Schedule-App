@@ -77,6 +77,18 @@
         /* Lists */
         .list-clean { list-style: none; padding: 0; margin-bottom: 15px;}
         .pto-row { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 5px 0; border-bottom: 1px solid #eee;}
+        .pto-name { font-weight: bold; font-size: 1.1em; color: #333; }
+        .pto-range { font-size: 0.9em; color: #666; margin-top: 2px; display: flex; align-items: center; gap: 5px;}
+        .pto-arrow { color: #999; font-size: 0.8em; }
+        .pto-tag { background: #ff9800; color: white; padding: 1px 5px; border-radius: 3px; font-size: 0.7em; vertical-align: middle;}
+        
+        /* Week Grid */
+        .week-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .week-check { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 2px solid #e0e0e0; padding: 15px 5px; border-radius: 8px; 
+            cursor: pointer; transition: all 0.2s ease; user-select: none;
+        }
 
         .day-cell-header-mobile {
             font-size: 1.1em; font-weight: bold; color: #007bff; padding-bottom: 5px; border-bottom: 1px solid #eee; display: none; 
@@ -397,6 +409,14 @@
             this.render();
         }
         setView(mode) {
+            
+            // 💡 FIX: AUTO-SWITCH TO WEEKLY ON NARROW SCREENS
+            if (mode === 'month' && window.innerWidth < 500) {
+                 // Forcing to Weekly as Monthly breaks below 500px width.
+                 mode = 'week'; 
+                 // Optional alert for debugging: alert("Switched to Weekly for stability.");
+            }
+
             this.viewMode = mode;
             document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
             if(mode === 'month') document.getElementById('btnMonth').classList.add('active');
@@ -581,7 +601,7 @@
             workingList.innerHTML = '';
             offList.innerHTML = '';
 
-            const [y, m, d] = dateStr.split('-'.map(Number)); // 💡 FIX: Parsing date parts
+            const [y, m, d] = dateStr.split('-').map(Number);
             const dateObj = new Date(y, m-1, d, 12, 0, 0);
             const dayIndex = dateObj.getDay();
             
@@ -807,8 +827,7 @@
 
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
     
-    // --- FIX: INITIAL RENDER ON LOAD ---
-    // This ensures the calendar loads instantly on page open.
+    // --- FINAL INITIALIZATION ---
     calendarView.setView('month'); 
 
     // --- MOBILE STABILITY LISTENERS ---
