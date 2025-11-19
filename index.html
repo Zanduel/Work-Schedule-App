@@ -125,19 +125,18 @@
 
         .section-title { font-size: 1.1em; border-bottom: 2px solid #eee; padding-bottom: 5px; margin: 20px 0 10px 0; color: #333; }
 
-        /* 💡 NEW: This is the Mobile-Only header for Week View */
         .day-cell-header-mobile {
             font-size: 1.1em;
             font-weight: bold;
             color: #007bff;
             padding-bottom: 5px;
             border-bottom: 1px solid #eee;
-            display: none; /* Hide on Desktop */
+            display: none; 
         }
         
-        /* =========================================
-           💡 NEW: RESPONSIVE MOBILE STYLES
-           ========================================= */
+        /* ====================================================================
+           MOBILE RESPONSIVENESS RULES (Generic - max-width: 768px)
+           ==================================================================== */
         @media (max-width: 768px) {
             body { padding: 0; }
             .container {
@@ -148,9 +147,8 @@
                 min-height: 100vh;
             }
 
-            /* --- Header --- */
             .header {
-                flex-direction: column; /* Stack nav buttons under date */
+                flex-direction: column; 
                 padding: 10px;
                 gap: 10px;
             }
@@ -160,53 +158,57 @@
             }
             .header-nav {
                 display: flex;
-                flex-wrap: wrap; /* Allow buttons to wrap to next line */
+                flex-wrap: wrap; 
                 justify-content: center;
                 gap: 5px;
             }
             .btn-nav { padding: 8px 10px; font-size: 0.9em; }
 
-            /* --- Calendar Grid --- */
-            /* 💡 LEARNING TIP: We shrink text/padding for mobile */
             .day-header {
                 padding: 8px 0;
                 font-size: 0.8em; 
             }
             .day-cell {
-                min-height: 80px; /* Shorter cells for mobile */
+                min-height: 80px; 
                 padding: 4px;
                 font-size: 0.8em;
             }
-            .day-number { font-size: 0.9em; margin-bottom: 2px; }
-
-            /* Make event pills smaller */
             .event {
                 font-size: 10px;
                 padding: 2px 4px;
             }
-
-            /* --- Modals --- */
             .modal-content {
-                width: 95%; /* Use % not pixels */
+                width: 95%; 
                 margin: auto;
                 padding: 15px;
             }
-
-            /* --- 💡 NEW: WEEK VIEW MOBILE FIX --- */
             .week-view #calendar {
-                grid-template-columns: 1fr; /* Stack all 7 days vertically */
+                grid-template-columns: 1fr; /* Stack days vertically in week view */
             }
-            .week-view .day-cell {
-                min-height: 100px; 
-                border-left: none; /* Remove side borders */
-            }
-            /* Hide the "Sat, Sun..." headers on week view */
             .week-view #calendar-headers {
-                display: none;
+                display: none; /* Hide 'Sat, Sun...' when stacked vertically */
             }
-            /* Show the individual header inside each cell */
             .week-view .day-cell-header-mobile {
-                display: block;
+                display: block; /* Show individual day header */
+            }
+        }
+
+        /* ====================================================================
+           💡 NEW: PORTRAIT PHONE OPTIMIZATION (max-width: 420px)
+           ==================================================================== */
+        @media (max-width: 420px) {
+            /* We need to aggressively shrink the month view */
+            .day-header {
+                font-size: 0.65em; /* Even smaller font for "Sat, Sun, Mon..." */
+                padding: 5px 0;
+            }
+            .day-cell {
+                min-height: 60px; /* Shorter cells */
+                padding: 1px; /* Less cell padding */
+            }
+            .event {
+                font-size: 8px; /* Tiny pill font */
+                padding: 1px 2px; /* Minimal pill padding */
             }
         }
 
@@ -232,6 +234,8 @@
     <div id="calendar-headers"></div>
     <div id="calendar"></div>
 </div>
+
+<button id="resetDataBtn" onclick="app.resetAllData()">Reset All Data</button>
 
 <div id="daySummaryModal" class="modal-backdrop">
     <div class="modal-content">
@@ -568,12 +572,9 @@
             }
         }
 
-        // 💡 NEW: This function is modified for mobile
         renderWeek() {
             this.grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
             this.headers.style.gridTemplateColumns = 'repeat(7, 1fr)';
-            this.headers.innerHTML = ''; // Clear headers
-            
             const startOfWeek = new Date(this.currentDate);
             const dayOffset = (this.currentDate.getDay() + 1) % 7;
             startOfWeek.setDate(this.currentDate.getDate() - dayOffset);
@@ -585,19 +586,9 @@
                 const day = new Date(startOfWeek);
                 day.setDate(startOfWeek.getDate() + i);
                 const dateStr = this.formatDate(day);
-                
-                // Add Desktop header
                 this.headers.innerHTML += `<div class="day-header">${day.toLocaleDateString('en-US', {weekday:'short', month:'numeric', day:'numeric'})}</div>`;
-                
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
-                
-                // Add Mobile header (hidden on desktop)
-                const mobileHeader = document.createElement('div');
-                mobileHeader.className = 'day-cell-header-mobile';
-                mobileHeader.innerText = day.toLocaleDateString('en-US', {weekday:'long', month:'numeric', day:'numeric'});
-                cell.appendChild(mobileHeader);
-                
                 this.setupCell(cell, dateStr, day);
                 this.grid.appendChild(cell);
             }
@@ -678,7 +669,6 @@
             }
         }
 
-        // 💡 FIX: Force precise date calculation here to match render logic
         openDaySummary(dateStr) {
             this.daySummaryModal.style.display = 'flex';
             document.getElementById('summaryDateTitle').innerText = `Summary: ${dateStr}`;
@@ -689,7 +679,6 @@
             workingList.innerHTML = '';
             offList.innerHTML = '';
 
-            // FIX: Use Noon time to ensure correct Day Index
             const [y, m, d] = dateStr.split('-').map(Number);
             const dateObj = new Date(y, m-1, d, 12, 0, 0);
             const dayIndex = dateObj.getDay();
@@ -752,8 +741,6 @@
             this.associateModal.style.display = 'flex';
             this.renderAssociateList();
         }
-
-
 
         openAssociateDetails(name) {
             this.associateModal.style.display = 'none';
@@ -826,6 +813,12 @@
     const ui = new UIManager();
 
     const app = {
+        resetAllData: () => {
+            if(confirm("Are you sure you want to RESET EVERYTHING? This cannot be undone.")) {
+                localStorage.clear();
+                location.reload();
+            }
+        },
         next: () => calendarView.next(),
         prev: () => calendarView.prev(),
         setView: (mode) => calendarView.setView(mode),
@@ -877,7 +870,6 @@
             while(cursor <= end) {
                 const dateStr = calendarView.formatDate(cursor);
                 scheduleMgr.addOrUpdate({
-                    // 💡 FIX: ID is now assigned by addOrUpdate, not here
                     date: dateStr,
                     name: name,
                     type: 'pto',
