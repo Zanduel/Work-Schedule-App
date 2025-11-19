@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Pro: Responsive Fix</title>
+    <title>Manager Pro: Final App</title>
     <style>
         /* =========================================
            CSS STYLING (How things look)
@@ -13,8 +13,8 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background-color: #f4f7f6; 
             padding: 20px; margin: 0; 
-            /* 💡 FIX: Hide horizontal overflow to prevent white space bug on stable desktop view */
-            overflow-x: hidden;
+            /* 💡 FIX: Prevents horizontal scrolling/blank space on desktop */
+            overflow-x: hidden; 
         }
         
         .container { 
@@ -117,7 +117,7 @@
            MOBILE RESPONSIVENESS RULES 
            ==================================================================== */
         @media (max-width: 768px) {
-            body { padding: 0 !important; } /* AGGRESSIVE ZEROING */
+            body { padding: 0 !important; } 
             .container {
                 width: 100% !important;
                 max-width: 100% !important;
@@ -169,6 +169,138 @@
 </div>
 
 <button id="resetDataBtn" onclick="app.resetAllData()">Reset All Data</button>
+
+<div id="daySummaryModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2 id="summaryDateTitle">Daily Summary</h2>
+        <input type="hidden" id="summaryDateHidden">
+        
+        <div class="section-title" style="border-color: #4caf50; color: #2e7d32;">Working Today</div>
+        <p style="font-size: 0.8em; color: #666; margin-top: -5px;">(Excludes associates on PTO)</p>
+        <ul id="workingList" class="list-clean"></ul>
+        <p id="noWorkersMsg" style="color:#999; font-style:italic; display:none;">No associates scheduled.</p>
+
+        <div class="section-title" style="border-color: #ff9800; color: #ef6c00;">Time Off / PTO</div>
+        <ul id="offList" class="list-clean"></ul>
+        <p id="noOffMsg" style="color:#999; font-style:italic; display:none;">No one is off today.</p>
+
+        <div class="modal-buttons">
+            <button type="button" class="btn-save" style="margin-right: auto;" onclick="ui.openEventModal(document.getElementById('summaryDateHidden').value)">+ Add Exception</button>
+            <button type="button" class="btn-cancel" onclick="ui.closeModals()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="ptoListModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2>Scheduled Time Off</h2>
+        <p style="font-size:0.8em; color:#666;">Consecutive days are grouped together.</p>
+        <ul id="allPtoList" class="list-clean" style="max-height: 300px; overflow-y: auto;"></ul>
+        <p id="noPtoFoundMsg" style="display:none; color:#999;">No PTO records found.</p>
+        
+        <div class="modal-buttons">
+            <button type="button" class="btn-cancel" onclick="ui.closeModals()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="eventModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2 id="modalTitle">Edit Exception</h2>
+        <form id="eventForm">
+            <input type="hidden" id="eventDate">
+            <input type="hidden" id="eventId">
+            <div class="form-group">
+                <label>Associate</label>
+                <select id="associateSelect" required></select>
+            </div>
+            <div class="form-group">
+                <label>Event Type</label>
+                <select id="eventType" onchange="ui.toggleTimeFields()">
+                    <option value="pto">PTO (Vacation)</option>
+                    <option value="sick">Sick Day</option>
+                    <option value="extra">Extra Work Shift</option>
+                </select>
+            </div>
+            <div id="timeFields" style="display:none;">
+                <label>Time</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="time" id="startTime">
+                    <input type="time" id="endTime">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" id="deleteBtn" class="btn-delete" onclick="app.deleteEvent()">Delete</button>
+                <button type="button" class="btn-cancel" onclick="ui.closeModals()">Cancel</button>
+                <button type="submit" class="btn-save">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="associateModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2>Team Management</h2>
+        <ul id="associateList" class="list-clean"></ul>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="newAssociateName" placeholder="New Name">
+            <button type="button" class="btn-save" onclick="app.addAssociate()">Add</button>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-cancel" onclick="ui.closeModals()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="associateDetailsModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2 id="detailName">Associate Details</h2>
+        <input type="hidden" id="detailAssociateName">
+
+        <div class="section-title">Indefinite Availability</div>
+        <p style="font-size: 0.8em; color: #666;">Click days to toggle availability.</p>
+        
+        <div class="form-group">
+            <label>Standard Shift Time</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="time" id="bulkStartTime" value="09:00">
+                <input type="time" id="bulkEndTime" value="17:00">
+            </div>
+        </div>
+
+        <div class="week-grid">
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day6" value="6"><span>Sat</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day0" value="0"><span>Sun</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day1" value="1"><span>Mon</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day2" value="2"><span>Tue</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day3" value="3"><span>Wed</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day4" value="4"><span>Thu</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day5" value="5"><span>Fri</span></div>
+        </div>
+        
+        <button type="button" class="btn-save" onclick="app.saveAvailabilityPattern()">Save Pattern</button>
+
+        <div class="section-title" style="margin-top: 30px; border-color: #ff9800;">Add Future PTO</div>
+        <div style="background: #fff3e0; padding: 10px; border-radius: 6px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <div style="flex:1;">
+                    <label style="font-size: 0.8em;">Start Date</label>
+                    <input type="date" id="ptoStartDate">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size: 0.8em;">End Date (Optional)</label>
+                    <input type="date" id="ptoEndDate" placeholder="Optional">
+                </div>
+            </div>
+            <button type="button" class="btn-save" style="background-color: #ff9800; width: 100%;" onclick="app.addBulkPTO()">Add PTO</button>
+        </div>
+
+        <div class="modal-buttons" style="margin-top: 30px;">
+            <button type="button" class="btn-delete" onclick="app.removeAssociateFromDetail()">Remove Person</button>
+            <button type="button" class="btn-cancel" onclick="ui.closeAssociateDetails()">Back</button>
+        </div>
+    </div>
+</div>
 
 <script>
 
@@ -387,9 +519,17 @@
                 const day = new Date(startOfWeek);
                 day.setDate(startOfWeek.getDate() + i);
                 const dateStr = this.formatDate(day);
+                
                 this.headers.innerHTML += `<div class="day-header">${day.toLocaleDateString('en-US', {weekday:'short', month:'numeric', day:'numeric'})}</div>`;
+                
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
+                
+                const mobileHeader = document.createElement('div');
+                mobileHeader.className = 'day-cell-header-mobile';
+                mobileHeader.innerText = day.toLocaleDateString('en-US', {weekday:'long', month:'numeric', day:'numeric'});
+                cell.appendChild(mobileHeader);
+                
                 this.setupCell(cell, dateStr, day);
                 this.grid.appendChild(cell);
             }
@@ -705,26 +845,29 @@
     };
 
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
-    calendarView.render();
+    
+    // --- FINAL INITIALIZATION ---
+    // 💡 FIX: This ensures the calendar loads instantly on page open.
+    calendarView.setView('month'); 
 
+    // --- MOBILE STABILITY LISTENERS ---
+    let resizeTimer;
+    function handleResizeAndOrientation() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            calendarView.render();
+        }, 150); 
+    }
+    window.addEventListener('resize', handleResizeAndOrientation);
+    window.addEventListener('orientationchange', handleResizeAndOrientation);
+
+    // --- PTO DATE SYNC (End Date follows Start Date) ---
     const sInput = document.getElementById('ptoStartDate');
     const eInput = document.getElementById('ptoEndDate');
     sInput.addEventListener('change', function() {
         eInput.min = this.value;
         eInput.value = this.value;
     });
-    
-    // 💡 NEW: ROBUST RESIZE AND ORIENTATION FIX
-    let resizeTimer;
-    function handleResizeAndOrientation() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            // This forces a complete redraw after the browser finishes rotating
-            calendarView.render();
-        }, 150); 
-    }
-    window.addEventListener('resize', handleResizeAndOrientation);
-    window.addEventListener('orientationchange', handleResizeAndOrientation);
 
 </script>
 </body>
