@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Pro: Responsive</title>
+    <title>Manager Pro: Final App</title>
     <style>
         /* =========================================
            CSS STYLING (How things look)
@@ -11,12 +11,12 @@
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background-color: #f4f7f6; 
+            background-color: #f4f7f6; /* 💡 LEARNING TIP: Change page background color here */
             padding: 20px; margin: 0; 
         }
         
         .container { 
-            max-width: 1200px; 
+            max-width: 1200px; /* 💡 LEARNING TIP: Increase to 1600px for a wider calendar on desktop */
             margin: 0 auto; 
             background: #fff; 
             border-radius: 12px; 
@@ -28,7 +28,7 @@
         /* --- HEADER COLORS --- */
         .header { 
             padding: 20px; 
-            background: #007bff; 
+            background: #007bff; /* 💡 LEARNING TIP: The main Blue Header color. Change to your brand color. */
             color: white; 
             display: flex; justify-content: space-between; align-items: center; 
         }
@@ -41,17 +41,17 @@
         }
         .btn-nav.active { 
             background: white; 
-            color: #007bff; 
+            color: #007bff; /* 💡 LEARNING TIP: Make this match the header background color */
             font-weight: bold; 
         }
         
         /* --- ACTION BUTTONS --- */
         .btn-associate { 
-            background: #ffc107; 
+            background: #ffc107; /* Yellow */
             color: #333; font-weight: bold; margin-left: 10px; 
         }
         .btn-pto { 
-            background: #ff5722; 
+            background: #ff5722; /* Orange-Red */
             color: white; font-weight: bold; margin-left: 5px; 
         }
         .btn-pto:hover { background: #e64a19; }
@@ -73,6 +73,7 @@
         
         /* --- RED ALERT FOR PTO DAYS --- */
         .has-pto-alert {
+            /* 💡 LEARNING TIP: This controls the Red Border thickness and color */
             border: 3px solid #d32f2f !important; 
             background-color: #fff0f0; 
         }
@@ -84,47 +85,26 @@
 
         /* --- EVENT PILLS --- */
         .event { font-size: 12px; padding: 4px 8px; border-radius: 4px; margin-top: 4px; color: white; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .event-shift { background: #4caf50; } 
-        .event-extra { background: #2196f3; } 
-        .event-pto { background: #ff9800; }   
-        .event-sick { background: #f44336; }  
+        /* 💡 LEARNING TIP: Customize event colors here */
+        .event-shift { background: #4caf50; } /* Green */
+        .event-extra { background: #2196f3; } /* Blue */
+        .event-pto { background: #ff9800; }   /* Orange */
+        .event-sick { background: #f44336; }  /* Red */
 
         /* Modals */
         .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 8px; width: 480px; max-height: 90vh; overflow-y: auto; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        
+        /* Buttons */
         .btn-save { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
         .btn-cancel { background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
         .btn-delete { background: #f44336; color: white; margin-right: auto; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
         
-        /* Lists */
+        /* Lists and PTO Rows */
         .list-clean { list-style: none; padding: 0; margin-bottom: 15px;}
-        .list-clean li { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; cursor: pointer; transition: 0.1s; }
-        .list-clean li:hover { background-color: #f0f0f0; }
-
         .pto-row { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 5px 0; border-bottom: 1px solid #eee;}
-        .pto-info { display: flex; flex-direction: column; }
         .pto-name { font-weight: bold; font-size: 1.1em; color: #333; }
         .pto-range { font-size: 0.9em; color: #666; margin-top: 2px; display: flex; align-items: center; gap: 5px;}
-        .pto-arrow { color: #999; font-size: 0.8em; }
-        .pto-tag { background: #ff9800; color: white; padding: 1px 5px; border-radius: 3px; font-size: 0.7em; vertical-align: middle;}
-        
-        /* Week Grid */
-        .week-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
-        .week-check { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border: 2px solid #e0e0e0; padding: 15px 5px; border-radius: 8px; 
-            cursor: pointer; transition: all 0.2s ease; user-select: none;
-        }
-        .week-check:hover { border-color: #007bff; background-color: #f0f8ff; }
-        .week-check.active { background-color: #007bff; border-color: #0056b3; color: white; font-weight: bold; }
-        .week-check input { display: none; }
-
-        .section-title { font-size: 1.1em; border-bottom: 2px solid #eee; padding-bottom: 5px; margin: 20px 0 10px 0; color: #333; }
-
         .day-cell-header-mobile {
             font-size: 1.1em;
             font-weight: bold;
@@ -135,7 +115,7 @@
         }
         
         /* ====================================================================
-           MOBILE RESPONSIVENESS RULES (Generic - max-width: 768px)
+           MOBILE RESPONSIVENESS RULES 
            ==================================================================== */
         @media (max-width: 768px) {
             body { padding: 0; }
@@ -146,69 +126,38 @@
                 padding: 0;
                 min-height: 100vh;
             }
-
             .header {
                 flex-direction: column; 
                 padding: 10px;
                 gap: 10px;
             }
-            #currentDateDisplay {
-                width: auto;
-                font-size: 1.25rem;
-            }
-            .header-nav {
-                display: flex;
-                flex-wrap: wrap; 
-                justify-content: center;
-                gap: 5px;
-            }
+            #currentDateDisplay { width: auto; font-size: 1.25rem; }
+            .header-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
             .btn-nav { padding: 8px 10px; font-size: 0.9em; }
 
-            .day-header {
-                padding: 8px 0;
-                font-size: 0.8em; 
-            }
-            .day-cell {
-                min-height: 80px; 
-                padding: 4px;
-                font-size: 0.8em;
-            }
-            .event {
-                font-size: 10px;
-                padding: 2px 4px;
-            }
-            .modal-content {
-                width: 95%; 
-                margin: auto;
-                padding: 15px;
-            }
-            .week-view #calendar {
-                grid-template-columns: 1fr; /* Stack days vertically in week view */
-            }
-            .week-view #calendar-headers {
-                display: none; /* Hide 'Sat, Sun...' when stacked vertically */
-            }
-            .week-view .day-cell-header-mobile {
-                display: block; /* Show individual day header */
-            }
+            .day-header { padding: 8px 0; font-size: 0.8em; }
+            .day-cell { min-height: 80px; padding: 4px; font-size: 0.8em; }
+            .event { font-size: 10px; padding: 2px 4px; }
+            .modal-content { width: 95%; margin: auto; padding: 15px; }
+
+            .week-view #calendar { grid-template-columns: 1fr; }
+            .week-view #calendar-headers { display: none; }
+            .week-view .day-cell-header-mobile { display: block; }
         }
 
-        /* ====================================================================
-           💡 NEW: PORTRAIT PHONE OPTIMIZATION (max-width: 420px)
-           ==================================================================== */
+        /* 💡 NEW: PORTRAIT PHONE OPTIMIZATION */
         @media (max-width: 420px) {
-            /* We need to aggressively shrink the month view */
             .day-header {
-                font-size: 0.65em; /* Even smaller font for "Sat, Sun, Mon..." */
+                font-size: 0.65em; 
                 padding: 5px 0;
             }
             .day-cell {
-                min-height: 60px; /* Shorter cells */
-                padding: 1px; /* Less cell padding */
+                min-height: 60px; 
+                padding: 1px; 
             }
             .event {
-                font-size: 8px; /* Tiny pill font */
-                padding: 1px 2px; /* Minimal pill padding */
+                font-size: 8px; 
+                padding: 1px 2px;
             }
         }
 
@@ -586,9 +535,17 @@
                 const day = new Date(startOfWeek);
                 day.setDate(startOfWeek.getDate() + i);
                 const dateStr = this.formatDate(day);
+                
                 this.headers.innerHTML += `<div class="day-header">${day.toLocaleDateString('en-US', {weekday:'short', month:'numeric', day:'numeric'})}</div>`;
+                
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
+                
+                const mobileHeader = document.createElement('div');
+                mobileHeader.className = 'day-cell-header-mobile';
+                mobileHeader.innerText = day.toLocaleDateString('en-US', {weekday:'long', month:'numeric', day:'numeric'});
+                cell.appendChild(mobileHeader);
+                
                 this.setupCell(cell, dateStr, day);
                 this.grid.appendChild(cell);
             }
@@ -912,28 +869,19 @@
         eInput.min = this.value;
         eInput.value = this.value;
     });
-// --- NEW: ORIENTATION CHANGE FIX ---
-function forceRefreshLayout() {
-    // This function is run whenever the phone is rotated
-    // It forces a temporary switch to Month view (which is the default)
-    // and then immediately switches back to the currently active view (e.g. Weekly)
-    // This prevents the CSS grid from getting "stuck" when the viewport changes size.
     
-    // Save current view state
-    const originalView = calendarView.viewMode;
-    
-    // 1. Temporarily switch to a safe, wide view (or just force render)
-    // Forcing a render here usually solves the cache issue:
-    calendarView.render();
-    
-    // 2. You might see better results by using a slight delay if the simple render fails:
-    // setTimeout(() => {
-    //     calendarView.setView(originalView);
-    // }, 100);
-}
+    // 💡 NEW: ORIENTATION CHANGE FIX
+    let resizeTimer;
+    function handleResizeAndOrientation() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            // This forces a complete redraw after the browser finishes rotating
+            calendarView.render();
+        }, 150); 
+    }
+    window.addEventListener('resize', handleResizeAndOrientation);
+    window.addEventListener('orientationchange', handleResizeAndOrientation);
 
-// Attach the layout fix to the phone's orientation change event
-window.addEventListener('orientationchange', forceRefreshLayout);
 </script>
 </body>
 </html>
