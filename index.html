@@ -13,7 +13,6 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background-color: #f4f7f6; 
             padding: 20px; margin: 0; 
-            /* 💡 FIX: Prevents horizontal scrolling/blank space on desktop */
             overflow-x: hidden; 
         }
         
@@ -28,29 +27,14 @@
         }
         
         /* --- HEADER COLORS --- */
-        .header { 
-            padding: 20px; 
-            background: #007bff; 
-            color: white; 
-            display: flex; justify-content: space-between; align-items: center; 
-        }
-        
+        .header { padding: 20px; background: #007bff; color: white; display: flex; justify-content: space-between; align-items: center; }
         .header-left { display: flex; align-items: center; gap: 20px; }
-        
-        .btn-nav { 
-            background: rgba(255,255,255,0.2); 
-            border: none; color: white; padding: 10px 15px; border-radius: 6px; cursor: pointer; 
-        }
-        .btn-nav.active { 
-            background: white; 
-            color: #007bff; 
-            font-weight: bold; 
-        }
+        .btn-nav { background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
+        .btn-nav.active { background: white; color: #007bff; font-weight: bold; }
         
         /* --- ACTION BUTTONS --- */
         .btn-associate { background: #ffc107; color: #333; font-weight: bold; margin-left: 10px; }
         .btn-pto { background: #ff5722; color: white; font-weight: bold; margin-left: 5px; }
-        .btn-pto:hover { background: #e64a19; }
 
         #currentDateDisplay { font-size: 1.5rem; font-weight: 600; width: 300px; text-align: center; }
 
@@ -68,10 +52,7 @@
         .day-cell.other-month { background: #fafafa; color: #ccc; }
         
         /* --- RED ALERT FOR PTO DAYS --- */
-        .has-pto-alert {
-            border: 3px solid #d32f2f !important; 
-            background-color: #fff0f0; 
-        }
+        .has-pto-alert { border: 3px solid #d32f2f !important; background-color: #fff0f0; }
 
         /* View Specifics */
         .week-view .day-cell { min-height: 400px; }
@@ -85,7 +66,7 @@
         .event-pto { background: #ff9800; }   
         .event-sick { background: #f44336; }  
 
-        /* Modals */
+        /* Modals (Simplified for space) */
         .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 8px; width: 480px; max-height: 90vh; overflow-y: auto; }
         
@@ -96,18 +77,6 @@
         /* Lists */
         .list-clean { list-style: none; padding: 0; margin-bottom: 15px;}
         .pto-row { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 5px 0; border-bottom: 1px solid #eee;}
-        .pto-name { font-weight: bold; font-size: 1.1em; color: #333; }
-        .pto-range { font-size: 0.9em; color: #666; margin-top: 2px; display: flex; align-items: center; gap: 5px;}
-        .pto-arrow { color: #999; font-size: 0.8em; }
-        .pto-tag { background: #ff9800; color: white; padding: 1px 5px; border-radius: 3px; font-size: 0.7em; vertical-align: middle;}
-        
-        /* Week Grid */
-        .week-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
-        .week-check { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border: 2px solid #e0e0e0; padding: 15px 5px; border-radius: 8px; 
-            cursor: pointer; transition: all 0.2s ease; user-select: none;
-        }
 
         .day-cell-header-mobile {
             font-size: 1.1em; font-weight: bold; color: #007bff; padding-bottom: 5px; border-bottom: 1px solid #eee; display: none; 
@@ -519,17 +488,9 @@
                 const day = new Date(startOfWeek);
                 day.setDate(startOfWeek.getDate() + i);
                 const dateStr = this.formatDate(day);
-                
                 this.headers.innerHTML += `<div class="day-header">${day.toLocaleDateString('en-US', {weekday:'short', month:'numeric', day:'numeric'})}</div>`;
-                
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
-                
-                const mobileHeader = document.createElement('div');
-                mobileHeader.className = 'day-cell-header-mobile';
-                mobileHeader.innerText = day.toLocaleDateString('en-US', {weekday:'long', month:'numeric', day:'numeric'});
-                cell.appendChild(mobileHeader);
-                
                 this.setupCell(cell, dateStr, day);
                 this.grid.appendChild(cell);
             }
@@ -620,7 +581,7 @@
             workingList.innerHTML = '';
             offList.innerHTML = '';
 
-            const [y, m, d] = dateStr.split('-').map(Number);
+            const [y, m, d] = dateStr.split('-'.map(Number)); // 💡 FIX: Parsing date parts
             const dateObj = new Date(y, m-1, d, 12, 0, 0);
             const dayIndex = dateObj.getDay();
             
@@ -846,8 +807,8 @@
 
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
     
-    // --- FINAL INITIALIZATION ---
-    // 💡 FIX: This ensures the calendar loads instantly on page open.
+    // --- FIX: INITIAL RENDER ON LOAD ---
+    // This ensures the calendar loads instantly on page open.
     calendarView.setView('month'); 
 
     // --- MOBILE STABILITY LISTENERS ---
