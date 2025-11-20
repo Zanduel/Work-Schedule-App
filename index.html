@@ -511,7 +511,7 @@
         }
     }
 
-    // --- UI MANAGER (Truncated for brevity) ---
+    // --- UI MANAGER ---
 
     class UIManager {
         constructor() {
@@ -527,34 +527,297 @@
                 });
             });
         }
-        // ... (rest of UIManager methods) ...
+
+        openPTOListModal() {
+            this.ptoListModal.style.display = 'flex';
+            const list = document.getElementById('allPtoList');
+            const emptyMsg = document.getElementById('noPtoFoundMsg');
+            list.innerHTML = '';
+            
+            const groups = scheduleMgr.getGroupedPTOs();
+            
+            if (groups.length === 0) {
+                emptyMsg.style.display = 'block';
+            } else {
+                emptyMsg.style.display = 'none';
+                groups.forEach(group => {
+                    const li = document.createElement('li');
+                    li.className = 'pto-row';
+                    const label = group.startDate === group.endDate 
+                        ? group.startDate 
+                        : `${group.startDate} <span class="pto-arrow">➔</span> ${group.endDate}`;
+                    const idString = JSON.stringify(group.ids);
+
+                    li.innerHTML = `
+                        <div class="pto-info">
+                            <div class="pto-name">
+                                ${group.name} <span class="pto-tag">${group.type.toUpperCase()}</span>
+                            </div>
+                            <div class="pto-range">${label}</div>
+                        </div>
+                        <button class="btn-delete" style="padding:5px 10px; font-size:0.8em;" onclick='ui.deleteGroupedPTO(${idString})'>Delete</button>
+                    `;
+                    list.appendChild(li);
+                });
+            }
+        }
+
+        deleteGroupedPTO(ids) {
+            if(confirm(`Delete this time off range (${ids.length} days)?`)) {
+                scheduleMgr.deleteMultiple(ids);
+                this.openPTOListModal(); 
+                calendarView.render(); 
+            }
+        }
+
+        openDaySummary(dateStr) {
+            this.daySummaryModal.style.display = 'flex';
+            document.getElementById('summaryDateTitle').innerText = `Summary: ${dateStr}`;
+            document.getElementById('summaryDateHidden').value = dateStr;
+
+            const workingList = document.getElementById('workingList');
+            const offList = document.getElementById('offList');
+            workingList.innerHTML = '';
+            offList.innerHTML = '';
+
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const dateObj = new Date(y, m-1, d, 12, 0, 0);
+            const dayIndex = dateObj.getDay();
+            
+            let workingCount = 0, offCount = 0;
+
+            associateMgr.roster.forEach(person => {
+                const exc = scheduleMgr.getExceptionFor(person.name, dateStr);
+                let li = document.createElement('li');
+                
+                if (exc) {
+                    if (exc.type === 'pto' || exc.type === 'sick') {
+                        li.innerHTML = `<span style="color:#d32f2f; font-weight:bold;">${person.name}</span> <span>${exc.type.toUpperCase()}</span>`;
+                        li.onclick = () => { this.daySummaryModal.style.display = 'none'; this.openEventModal(dateStr, exc.id); };
+                        offList.appendChild(li);
+                        offCount++;
+                    } else {
+                        li.innerHTML = `<span>${person.name}</span> <span style="color:#2196f3;">Extra Shift (${exc.startTime}-${exc.endTime})</span>`;
+                        li.onclick = () => { this.daySummaryModal.style.display = 'none'; this.openEventModal(dateStr, exc.id); };
+                        workingList.appendChild(li);
+                        workingCount++;
+                    }
+                } else if (person.schedule[dayIndex]) {
+                    const shift = person.schedule[dayIndex];
+                    li.innerHTML = `<span>${person.name}</span> <span>${shift.start}-${shift.end}</span>`;
+                    li.onclick = () => { this.daySummaryModal.style.display = 'none'; this.openAssociateDetails(person.name); };
+                    workingList.appendChild(li);
+                    workingCount++;
+                }
+            });
+
+            document.getElementById('noWorkersMsg').style.display = workingCount === 0 ? 'block' : 'none';
+            document.getElementById('noOffMsg').style.display = offCount === 0 ? 'block' : 'none';
+        }
+
+        openEventModal(dateStr, eventId = null) {
+            this.eventModal.style.display = 'flex';
+            document.getElementById('eventDate').value = dateStr;
+            this.refreshAssociateDropdown();
+
+            if (eventId) {
+                const evt = scheduleMgr.getEventById(eventId);
+                document.getElementById('eventId').value = evt.id;
+                document.getElementById('associateSelect').value = evt.name;
+                document.getElementById('eventType').value = evt.type;
+                if(evt.startTime) {
+                    document.getElementById('startTime').value = evt.startTime;
+                    document.getElementById('endTime').value = evt.endTime;
+                }
+                document.getElementById('deleteBtn').style.display = 'block';
+            } else {
+                document.getElementById('eventForm').reset();
+                document.getElementById('eventId').value = '';
+                document.getElementById('deleteBtn').style.display = 'none';
+            }
+            this.toggleTimeFields();
+        }
+
+        openAssociateModal() {
+            this.associateModal.style.display = 'flex';
+            this.renderAssociateList();
+        }
+
+        openAssociateDetails(name) {
+            this.associateModal.style.display = 'none';
+            this.associateDetailsModal.style.display = 'flex';
+            document.getElementById('detailName').innerText = `Manage: ${name}`;
+            document.getElementById('detailAssociateName').value = name;
+            
+            const person = associateMgr.get(name);
+            document.querySelectorAll('.week-check').forEach(div => {
+                const input = div.querySelector('input');
+                const isChecked = !!person.schedule[parseInt(input.value)];
+                input.checked = isChecked;
+                if(isChecked) div.classList.add('active');
+                else div.classList.remove('active');
+            });
+        }
+
+        toggleDay(divElement) {
+            const input = divElement.querySelector('input');
+            input.checked = !input.checked;
+            if(input.checked) divElement.classList.add('active');
+            else divElement.classList.remove('active');
+        }
+
+        closeModals() {
+            this.daySummaryModal.style.display = 'none';
+            this.ptoListModal.style.display = 'none';
+            this.eventModal.style.display = 'none';
+            this.associateModal.style.display = 'none';
+            this.associateDetailsModal.style.display = 'none';
+        }
+
+        closeAssociateDetails() {
+            this.associateDetailsModal.style.display = 'none';
+            this.associateModal.style.display = 'flex';
+        }
+
+        toggleTimeFields() {
+            const type = document.getElementById('eventType').value;
+            document.getElementById('timeFields').style.display = (type === 'extra') ? 'block' : 'none';
+        }
+
+        refreshAssociateDropdown() {
+            const select = document.getElementById('associateSelect');
+            select.innerHTML = '';
+            associateMgr.roster.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.name; opt.innerText = p.name;
+                select.appendChild(opt);
+            });
+        }
+
+        renderAssociateList() {
+            const listEl = document.getElementById('associateList');
+            listEl.innerHTML = '';
+            associateMgr.roster.forEach(p => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${p.name}</span> <span style="color:#aaa; font-size:0.8em;">Manage Schedule ➜</span>`;
+                li.onclick = () => this.openAssociateDetails(p.name);
+                listEl.appendChild(li);
+            });
+        }
     }
 
-    class AssociateManager { /* ... */ }
-    class ScheduleManager { /* ... */ }
-    
     // --- MAIN APP CONTROLLER ---
+
+    class AssociateManager {
+        constructor() {
+            const saved = localStorage.getItem('associate_roster');
+            if(saved) this.roster = JSON.parse(saved);
+            else this.roster = [ { name: 'Zachary', schedule: {} }, { name: 'Cindy', schedule: {} } ];
+        }
+        save() { localStorage.setItem('associate_roster', JSON.stringify(this.roster)); }
+        add(name) { 
+            if (name && !this.roster.find(p => p.name === name)) {
+                this.roster.push({ name: name, schedule: {} });
+                this.save();
+            }
+        }
+        remove(name) { this.roster = this.roster.filter(p => p.name !== name); this.save(); }
+        get(name) { return this.roster.find(p => p.name === name); }
+        updateSchedule(name, dayIndexes, start, end) {
+            const person = this.get(name);
+            if(!person) return;
+            person.schedule = {}; 
+            dayIndexes.forEach(dayIndex => { person.schedule[dayIndex] = { start: start, end: end }; });
+            this.save();
+        }
+    }
+
+    class ScheduleManager {
+        constructor() {
+            const saved = localStorage.getItem('schedule_exceptions');
+            if(saved) this.exceptions = JSON.parse(saved);
+            else this.exceptions = [];
+        }
+        save() { localStorage.setItem('schedule_exceptions', JSON.stringify(this.exceptions)); }
+        
+        addOrUpdate(eventData) {
+            const index = this.exceptions.findIndex(e => e.id === eventData.id);
+            if (index >= 0) this.exceptions[index] = eventData;
+            else {
+                if(!eventData.id) eventData.id = Date.now().toString() + Math.random();
+                this.exceptions.push(eventData);
+            }
+            this.save();
+        }
+
+        delete(id) { this.exceptions = this.exceptions.filter(e => e.id !== id); this.save(); }
+        
+        deleteMultiple(idArray) {
+            this.exceptions = this.exceptions.filter(e => !idArray.includes(e.id));
+            this.save();
+        }
+
+        getExceptionFor(name, dateStr) { return this.exceptions.find(e => e.date === dateStr && e.name === name); }
+        getEventById(id) { return this.exceptions.find(e => e.id === id); }
+        
+        hasPTO(dateStr) {
+            return this.exceptions.some(e => e.date === dateStr && (e.type === 'pto' || e.type === 'sick'));
+        }
+        
+        getAllPTOs() {
+            return this.exceptions
+                .filter(e => e.type === 'pto' || e.type === 'sick')
+                .sort((a,b) => new Date(a.date) - new Date(b.date));
+        }
+
+        getGroupedPTOs() {
+            const raw = this.getAllPTOs();
+            if (raw.length === 0) return [];
+
+            raw.sort((a, b) => {
+                if (a.name !== b.name) return a.name.localeCompare(b.name);
+                return new Date(a.date) - new Date(b.date);
+            });
+
+            const groups = [];
+            let current = null;
+
+            for (const event of raw) {
+                const dParts = event.date.split('-').map(Number);
+                const evtDate = new Date(dParts[0], dParts[1]-1, dParts[2]);
+
+                if (current && current.name === event.name && current.type === event.type) {
+                    const prevParts = current.endDate.split('-').map(Number);
+                    const prevDate = new Date(prevParts[0], prevParts[1]-1, prevParts[2]);
+                    const diffTime = Math.abs(evtDate - prevDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays === 1) {
+                        current.endDate = event.date;
+                        current.ids.push(event.id); 
+                        continue;
+                    }
+                }
+                if (current) groups.push(current);
+                current = { name: event.name, type: event.type, startDate: event.date, endDate: event.date, ids: [event.id] };
+            }
+            if (current) groups.push(current);
+            return groups;
+        }
+    }
 
     const associateMgr = new AssociateManager();
     const scheduleMgr = new ScheduleManager();
     const calendarView = new CalendarView(associateMgr, scheduleMgr);
     const ui = new UIManager();
 
-    // 💡 FIX: Calculate the height available for the calendar content
-    function setCalendarAreaHeight() {
-        const wrapper = document.getElementById('calendar-wrapper');
-        const header = document.querySelector('.header');
-        const buffer = 80; 
-        
-        if (wrapper && header) {
-            const availableHeight = window.innerHeight - header.offsetHeight - buffer;
-            // Set the minimum height to prevent the grid from collapsing to zero
-            wrapper.style.minHeight = `${Math.max(300, availableHeight)}px`;
-        }
-    }
-
     const app = {
-        resetAllData: () => { /* ... */ },
+        resetAllData: () => {
+            if(confirm("Are you sure you want to RESET EVERYTHING? This cannot be undone.")) {
+                localStorage.clear();
+                location.reload();
+            }
+        },
         next: () => calendarView.next(),
         prev: () => calendarView.prev(),
         setView: (mode) => calendarView.setView(mode),
@@ -570,16 +833,19 @@
     
     // --- FINAL INITIALIZATION ---
     
-    // 1. Set the initial view
+    // 1. Initial Render and View Setting
     calendarView.setView('month'); 
 
-    // 2. Add listeners to calculate height and stabilize mobile view
-    // We add a slight delay to ensure all CSS has rendered before the height calculation runs.
-    window.addEventListener('load', () => {
-        setCalendarAreaHeight(); 
-        window.addEventListener('resize', setCalendarAreaHeight);
-        window.addEventListener('orientationchange', setCalendarAreaHeight);
-    });
+    // 2. Mobile Stability Listeners
+    let resizeTimer;
+    function handleResizeAndOrientation() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            calendarView.render();
+        }, 150); 
+    }
+    window.addEventListener('resize', handleResizeAndOrientation);
+    window.addEventListener('orientationchange', handleResizeAndOrientation);
 
     // --- PTO DATE SYNC ---
     const sInput = document.getElementById('ptoStartDate');
@@ -589,7 +855,6 @@
         eInput.value = this.value;
     });
 
-    // (Full implementations of helper classes and app methods are assumed to be in the final script block.)
 </script>
 </body>
 </html>
