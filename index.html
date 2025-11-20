@@ -22,7 +22,8 @@
             background: #fff; 
             border-radius: 12px; 
             box-shadow: 0 6px 20px rgba(0,0,0,0.08); 
-            /* min-height: 80vh; */ /* REMOVED TO PREVENT CONFLICT */
+            /* 💡 RESTORING FLEX-GROW MODEL */
+            min-height: 80vh; 
             display: flex; flex-direction: column; 
         }
         
@@ -42,14 +43,9 @@
         #calendar-headers { display: grid; grid-template-columns: repeat(7, 1fr); background: #f9f9f9; border-bottom: 1px solid #ddd; }
         .day-header { text-align: center; padding: 12px 0; font-weight: bold; border-left: 1px solid #ddd; }
         
-        /* 💡 NEW: CALENDAR WRAPPER IS NOW THE FLEX GROWER */
-        #calendar-wrapper {
-            flex-grow: 1; /* Ensure this takes up all vertical space */
-            display: flex;
-            flex-direction: column;
-        }
-
+        /* 💡 RESTORING SIMPLE CALENDAR STRUCTURE */
         #calendar { flex-grow: 1; display: grid; grid-template-columns: repeat(7, 1fr); }
+        #calendar-wrapper { display: flex; flex-direction: column; flex-grow: 1; } /* Retaining the flex wrapper */
         
         .day-cell { 
             border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; 
@@ -133,6 +129,138 @@
 </div>
 
 <button id="resetDataBtn" onclick="app.resetAllData()">Reset All Data</button>
+
+<div id="daySummaryModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2 id="summaryDateTitle">Daily Summary</h2>
+        <input type="hidden" id="summaryDateHidden">
+        
+        <div class="section-title" style="border-color: #4caf50; color: #2e7d32;">Working Today</div>
+        <p style="font-size: 0.8em; color: #666; margin-top: -5px;">(Excludes associates on PTO)</p>
+        <ul id="workingList" class="list-clean"></ul>
+        <p id="noWorkersMsg" style="color:#999; font-style:italic; display:none;">No associates scheduled.</p>
+
+        <div class="section-title" style="border-color: #ff9800; color: #ef6c00;">Time Off / PTO</div>
+        <ul id="offList" class="list-clean"></ul>
+        <p id="noOffMsg" style="color:#999; font-style:italic; display:none;">No one is off today.</p>
+
+        <div class="modal-buttons">
+            <button type="button" class="btn-save" style="margin-right: auto;" onclick="ui.openEventModal(document.getElementById('summaryDateHidden').value)">+ Add Exception</button>
+            <button type="button" class="btn-cancel" onclick="ui.closeModals()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="ptoListModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2>Scheduled Time Off</h2>
+        <p style="font-size:0.8em; color:#666;">Consecutive days are grouped together.</p>
+        <ul id="allPtoList" class="list-clean" style="max-height: 300px; overflow-y: auto;"></ul>
+        <p id="noPtoFoundMsg" style="display:none; color:#999;">No PTO records found.</p>
+        
+        <div class="modal-buttons">
+            <button type="button" class="btn-cancel" onclick="ui.closeModals()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="eventModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2 id="modalTitle">Edit Exception</h2>
+        <form id="eventForm">
+            <input type="hidden" id="eventDate">
+            <input type="hidden" id="eventId">
+            <div class="form-group">
+                <label>Associate</label>
+                <select id="associateSelect" required></select>
+            </div>
+            <div class="form-group">
+                <label>Event Type</label>
+                <select id="eventType" onchange="ui.toggleTimeFields()">
+                    <option value="pto">PTO (Vacation)</option>
+                    <option value="sick">Sick Day</option>
+                    <option value="extra">Extra Work Shift</option>
+                </select>
+            </div>
+            <div id="timeFields" style="display:none;">
+                <label>Time</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="time" id="startTime">
+                    <input type="time" id="endTime">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" id="deleteBtn" class="btn-delete" onclick="app.deleteEvent()">Delete</button>
+                <button type="button" class="btn-cancel" onclick="ui.closeModals()">Cancel</button>
+                <button type="submit" class="btn-save">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="associateModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2>Team Management</h2>
+        <ul id="associateList" class="list-clean"></ul>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="newAssociateName" placeholder="New Name">
+            <button type="button" class="btn-save" onclick="app.addAssociate()">Add</button>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-cancel" onclick="ui.closeModals()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="associateDetailsModal" class="modal-backdrop">
+    <div class="modal-content">
+        <h2 id="detailName">Associate Details</h2>
+        <input type="hidden" id="detailAssociateName">
+
+        <div class="section-title">Indefinite Availability</div>
+        <p style="font-size: 0.8em; color: #666;">Click days to toggle availability.</p>
+        
+        <div class="form-group">
+            <label>Standard Shift Time</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="time" id="bulkStartTime" value="09:00">
+                <input type="time" id="bulkEndTime" value="17:00">
+            </div>
+        </div>
+
+        <div class="week-grid">
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day6" value="6"><span>Sat</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day0" value="0"><span>Sun</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day1" value="1"><span>Mon</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day2" value="2"><span>Tue</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day3" value="3"><span>Wed</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day4" value="4"><span>Thu</span></div>
+            <div class="week-check" onclick="ui.toggleDay(this)"><input type="checkbox" id="day5" value="5"><span>Fri</span></div>
+        </div>
+        
+        <button type="button" class="btn-save" onclick="app.saveAvailabilityPattern()">Save Pattern</button>
+
+        <div class="section-title" style="margin-top: 30px; border-color: #ff9800;">Add Future PTO</div>
+        <div style="background: #fff3e0; padding: 10px; border-radius: 6px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <div style="flex:1;">
+                    <label style="font-size: 0.8em;">Start Date</label>
+                    <input type="date" id="ptoStartDate">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size: 0.8em;">End Date (Optional)</label>
+                    <input type="date" id="ptoEndDate" placeholder="Optional">
+                </div>
+            </div>
+            <button type="button" class="btn-save" style="background-color: #ff9800; width: 100%;" onclick="app.addBulkPTO()">Add PTO</button>
+        </div>
+
+        <div class="modal-buttons" style="margin-top: 30px;">
+            <button type="button" class="btn-delete" onclick="app.removeAssociateFromDetail()">Remove Person</button>
+            <button type="button" class="btn-cancel" onclick="ui.closeAssociateDetails()">Back</button>
+        </div>
+    </div>
+</div>
 
 <script>
 
@@ -249,7 +377,6 @@
             this.grid = document.getElementById('calendar');
             this.headers = document.getElementById('calendar-headers');
             this.dateDisplay = document.getElementById('currentDateDisplay');
-            // NEW: Get the wrapper element
             this.calendarWrapper = document.getElementById('calendar-wrapper'); 
         }
 
@@ -263,7 +390,7 @@
         }
         setView(mode) {
             
-            // 💡 MOBILE STABILITY FIX: Prevent Monthly view from being selected on narrow screen
+            // 💡 FIX: INTELLIGENT VIEW SWITCH FOR NARROW SCREENS
             if (mode === 'month' && window.innerWidth < 500) {
                  alert("Monthly view is unstable on narrow screens. Switching to Weekly.");
                  mode = 'week'; 
@@ -281,11 +408,12 @@
         }
 
         render() {
-            // FIX: Ensure height is set before rendering the content to prevent collapse
-            setCalendarAreaHeight(); 
-            
             this.grid.innerHTML = '';
             this.headers.innerHTML = '';
+            
+            // Ensure height calculation runs before rendering the content
+            setCalendarAreaHeight(); 
+
             if (this.viewMode === 'month') this.renderMonth();
             else if (this.viewMode === 'week') this.renderWeek();
             else if (this.viewMode === 'day') this.renderDay();
@@ -397,7 +525,7 @@
         
         if (wrapper && header) {
             const availableHeight = window.innerHeight - header.offsetHeight - buffer;
-            // Set the minimum height to prevent collapse
+            // Set the minimum height to prevent the grid from collapsing to zero
             wrapper.style.minHeight = `${Math.max(300, availableHeight)}px`;
         }
     }
@@ -464,13 +592,15 @@
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
     
     // --- FINAL INITIALIZATION ---
-
+    
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. Initialize the view only after the HTML elements are fully present.
+        // 1. Calculate height first
+        setCalendarAreaHeight(); 
+        
+        // 2. Initialize the view only after the HTML elements are fully present.
         calendarView.setView('month'); 
 
-        // 2. Set height and listen for resizing (desktop & mobile)
-        setCalendarAreaHeight(); 
+        // 3. Listen for size changes to prevent mobile collapse
         window.addEventListener('resize', setCalendarAreaHeight);
         window.addEventListener('orientationchange', setCalendarAreaHeight);
     });
@@ -483,24 +613,7 @@
         eInput.value = this.value;
     });
 
-    // Full implementation of utility functions used by classes (for completeness):
-    
-    class AssociateManager { /* ... */ }
-    class ScheduleManager { /* ... */ }
-    
-    // Full app object definition:
-    // This is a minimal definition of the app object logic needed for the HTML buttons to work.
-    // The full implementations are defined implicitly above.
-    
-    // The following functions are included in the full code block for completeness:
-
-    app.addAssociate = () => { /* ... */ };
-    app.removeAssociateFromDetail = () => { /* ... */ };
-    app.saveAvailabilityPattern = () => { /* ... */ };
-    app.addBulkPTO = () => { /* ... */ };
-    app.handleFormSubmit = (e) => { /* ... */ };
-    app.deleteEvent = () => { /* ... */ };
-
+    // (Full implementations of classes and app methods are assumed to be in the final script block.)
 </script>
 </body>
 </html>
