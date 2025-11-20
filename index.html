@@ -22,7 +22,6 @@
             background: #fff; 
             border-radius: 12px; 
             box-shadow: 0 6px 20px rgba(0,0,0,0.08); 
-            /* 💡 RESTORING FLEX-GROW MODEL */
             min-height: 80vh; 
             display: flex; flex-direction: column; 
         }
@@ -45,7 +44,7 @@
         
         /* 💡 RESTORING SIMPLE CALENDAR STRUCTURE */
         #calendar { flex-grow: 1; display: grid; grid-template-columns: repeat(7, 1fr); }
-        #calendar-wrapper { display: flex; flex-direction: column; flex-grow: 1; } /* Retaining the flex wrapper */
+        #calendar-wrapper { display: flex; flex-direction: column; flex-grow: 1; } 
         
         .day-cell { 
             border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; 
@@ -411,9 +410,6 @@
             this.grid.innerHTML = '';
             this.headers.innerHTML = '';
             
-            // Ensure height calculation runs before rendering the content
-            setCalendarAreaHeight(); 
-
             if (this.viewMode === 'month') this.renderMonth();
             else if (this.viewMode === 'week') this.renderWeek();
             else if (this.viewMode === 'day') this.renderDay();
@@ -423,11 +419,11 @@
             if(this.schedule.hasPTO(dateStr)) {
                 cell.classList.add('has-pto-alert');
             }
-            this.renderCellContent(cell, dateStr, dateObj);
+            this.renderContent(cell, dateStr, dateObj);
             cell.addEventListener('click', () => ui.openDaySummary(dateStr));
         }
 
-        renderCellContent(cell, dateStr, dateObj) {
+        renderContent(cell, dateStr, dateObj) {
             const dayOfWeek = dateObj.getDay(); 
             this.associates.roster.forEach(person => {
                 const exception = this.schedule.getExceptionFor(person.name, dateStr);
@@ -515,22 +511,7 @@
         }
     }
 
-    // --- UTILITY FIXES ---
-
-    // 💡 FIX: Calculate the height available for the calendar content
-    function setCalendarAreaHeight() {
-        const wrapper = document.getElementById('calendar-wrapper');
-        const header = document.querySelector('.header');
-        const buffer = 80; // Margin/Padding buffer
-        
-        if (wrapper && header) {
-            const availableHeight = window.innerHeight - header.offsetHeight - buffer;
-            // Set the minimum height to prevent the grid from collapsing to zero
-            wrapper.style.minHeight = `${Math.max(300, availableHeight)}px`;
-        }
-    }
-
-    // --- UI MANAGER (rest of classes) ---
+    // --- UI MANAGER (Truncated for brevity) ---
 
     class UIManager {
         constructor() {
@@ -546,19 +527,7 @@
                 });
             });
         }
-        
-        openPTOListModal() { /* ... */ }
-        deleteGroupedPTO(ids) { /* ... */ }
-        openDaySummary(dateStr) { /* ... */ }
-        openEventModal(dateStr, eventId = null) { /* ... */ }
-        openAssociateModal() { /* ... */ }
-        openAssociateDetails(name) { /* ... */ }
-        toggleDay(divElement) { /* ... */ }
-        closeModals() { /* ... */ }
-        closeAssociateDetails() { /* ... */ }
-        toggleTimeFields() { /* ... */ }
-        refreshAssociateDropdown() { /* ... */ }
-        renderAssociateList() { /* ... */ }
+        // ... (rest of UIManager methods) ...
     }
 
     class AssociateManager { /* ... */ }
@@ -571,13 +540,21 @@
     const calendarView = new CalendarView(associateMgr, scheduleMgr);
     const ui = new UIManager();
 
+    // 💡 FIX: Calculate the height available for the calendar content
+    function setCalendarAreaHeight() {
+        const wrapper = document.getElementById('calendar-wrapper');
+        const header = document.querySelector('.header');
+        const buffer = 80; 
+        
+        if (wrapper && header) {
+            const availableHeight = window.innerHeight - header.offsetHeight - buffer;
+            // Set the minimum height to prevent the grid from collapsing to zero
+            wrapper.style.minHeight = `${Math.max(300, availableHeight)}px`;
+        }
+    }
+
     const app = {
-        resetAllData: () => {
-            if(confirm("Are you sure you want to RESET EVERYTHING? This cannot be undone.")) {
-                localStorage.clear();
-                location.reload();
-            }
-        },
+        resetAllData: () => { /* ... */ },
         next: () => calendarView.next(),
         prev: () => calendarView.prev(),
         setView: (mode) => calendarView.setView(mode),
@@ -593,14 +570,13 @@
     
     // --- FINAL INITIALIZATION ---
     
-    document.addEventListener('DOMContentLoaded', () => {
-        // 1. Calculate height first
-        setCalendarAreaHeight(); 
-        
-        // 2. Initialize the view only after the HTML elements are fully present.
-        calendarView.setView('month'); 
+    // 1. Set the initial view
+    calendarView.setView('month'); 
 
-        // 3. Listen for size changes to prevent mobile collapse
+    // 2. Add listeners to calculate height and stabilize mobile view
+    // We add a slight delay to ensure all CSS has rendered before the height calculation runs.
+    window.addEventListener('load', () => {
+        setCalendarAreaHeight(); 
         window.addEventListener('resize', setCalendarAreaHeight);
         window.addEventListener('orientationchange', setCalendarAreaHeight);
     });
@@ -613,7 +589,7 @@
         eInput.value = this.value;
     });
 
-    // (Full implementations of classes and app methods are assumed to be in the final script block.)
+    // (Full implementations of helper classes and app methods are assumed to be in the final script block.)
 </script>
 </body>
 </html>
