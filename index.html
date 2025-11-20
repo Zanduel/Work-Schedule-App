@@ -35,7 +35,6 @@
         /* --- ACTION BUTTONS --- */
         .btn-associate { background: #ffc107; color: #333; font-weight: bold; margin-left: 10px; }
         .btn-pto { background: #ff5722; color: white; font-weight: bold; margin-left: 5px; }
-        .btn-pto:hover { background: #e64a19; }
 
         #currentDateDisplay { font-size: 1.5rem; font-weight: 600; width: 300px; text-align: center; }
 
@@ -104,7 +103,10 @@
             .day-cell { min-height: 80px; padding: 4px; font-size: 0.8em; }
             .event { font-size: 10px; padding: 2px 4px; }
             .modal-content { width: 95%; margin: auto; padding: 15px; }
-            .week-view #calendar { grid-template-columns: 1fr; }
+            
+            /* 💡 FINAL FIX: FORCE 1-COLUMN STACKING FOR WEEK VIEW */
+            .week-view #calendar { grid-template-columns: 1fr !important; } 
+            
             .week-view #calendar-headers { display: none; }
             .week-view .day-cell-header-mobile { display: block; }
         }
@@ -400,8 +402,9 @@
         setView(mode) {
             
             // 💡 FIX: INTELLIGENT VIEW SWITCH FOR NARROW SCREENS
-            // If screen is too narrow (< 500px), Monthly grid is unstable, force Weekly view.
             if (mode === 'month' && window.innerWidth < 500) {
+                 // Force the stable Weekly stack if screen is too narrow for Monthly grid
+                 alert("Monthly view is unstable on narrow screens. Switching to Weekly.");
                  mode = 'week'; 
             }
 
@@ -717,6 +720,104 @@
 
     // --- MAIN APP CONTROLLER ---
 
+    class AssociateManager {
+        constructor() {
+            const saved = localStorage.getItem('associate_roster');
+            if(saved) this.roster = JSON.parse(saved);
+            else this.roster = [ { name: 'Zachary', schedule: {} }, { name: 'Cindy', schedule: {} } ];
+        }
+        save() { localStorage.setItem('associate_roster', JSON.stringify(this.roster)); }
+        add(name) { 
+            if (name && !this.roster.find(p => p.name === name)) {
+                this.roster.push({ name: name, schedule: {} });
+                this.save();
+            }
+        }
+        remove(name) { this.roster = this.roster.filter(p => p.name !== name); this.save(); }
+        get(name) { return this.roster.find(p => p.name === name); }
+        updateSchedule(name, dayIndexes, start, end) {
+            const person = this.get(name);
+            if(!person) return;
+            person.schedule = {}; 
+            dayIndexes.forEach(dayIndex => { person.schedule[dayIndex] = { start: start, end: end }; });
+            this.save();
+        }
+    }
+
+    class ScheduleManager {
+        constructor() {
+            const saved = localStorage.getItem('schedule_exceptions');
+            if(saved) this.exceptions = JSON.parse(saved);
+            else this.exceptions = [];
+        }
+        save() { localStorage.setItem('schedule_exceptions', JSON.stringify(this.exceptions)); }
+        
+        addOrUpdate(eventData) {
+            const index = this.exceptions.findIndex(e => e.id === eventData.id);
+            if (index >= 0) this.exceptions[index] = eventData;
+            else {
+                if(!eventData.id) eventData.id = Date.now().toString() + Math.random();
+                this.exceptions.push(eventData);
+            }
+            this.save();
+        }
+
+        delete(id) { this.exceptions = this.exceptions.filter(e => e.id !== id); this.save(); }
+        
+        deleteMultiple(idArray) {
+            this.exceptions = this.exceptions.filter(e => !idArray.includes(e.id));
+            this.save();
+        }
+
+        getExceptionFor(name, dateStr) { return this.exceptions.find(e => e.date === dateStr && e.name === name); }
+        getEventById(id) { return this.exceptions.find(e => e.id === id); }
+        
+        hasPTO(dateStr) {
+            return this.exceptions.some(e => e.date === dateStr && (e.type === 'pto' || e.type === 'sick'));
+        }
+        
+        getAllPTOs() {
+            return this.exceptions
+                .filter(e => e.type === 'pto' || e.type === 'sick')
+                .sort((a,b) => new Date(a.date) - new Date(b.date));
+        }
+
+        getGroupedPTOs() {
+            const raw = this.getAllPTOs();
+            if (raw.length === 0) return [];
+
+            raw.sort((a, b) => {
+                if (a.name !== b.name) return a.name.localeCompare(b.name);
+                return new Date(a.date) - new Date(b.date);
+            });
+
+            const groups = [];
+            let current = null;
+
+            for (const event of raw) {
+                const dParts = event.date.split('-').map(Number);
+                const evtDate = new Date(dParts[0], dParts[1]-1, dParts[2]);
+
+                if (current && current.name === event.name && current.type === event.type) {
+                    const prevParts = current.endDate.split('-').map(Number);
+                    const prevDate = new Date(prevParts[0], prevParts[1]-1, prevParts[2]);
+                    const diffTime = Math.abs(evtDate - prevDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays === 1) {
+                        current.endDate = event.date;
+                        current.ids.push(event.id); 
+                        continue;
+                    }
+                }
+                if (current) groups.push(current);
+                current = { name: event.name, type: event.type, startDate: event.date, endDate: event.date, ids: [event.id] };
+            }
+            if (current) groups.push(current);
+            return groups;
+        }
+    }
+
     const associateMgr = new AssociateManager();
     const scheduleMgr = new ScheduleManager();
     const calendarView = new CalendarView(associateMgr, scheduleMgr);
@@ -816,28 +917,25 @@
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
     
     // --- FINAL INITIALIZATION ---
-    // 💡 FIX: This ensures the calendar loads instantly on page open by waiting for the document content.
-    window.addEventListener('DOMContentLoaded', () => {
-        calendarView.setView('month'); 
+    calendarView.setView('month'); 
 
-        // --- MOBILE STABILITY LISTENERS ---
-        let resizeTimer;
-        function handleResizeAndOrientation() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => {
-                calendarView.render();
-            }, 150); 
-        }
-        window.addEventListener('resize', handleResizeAndOrientation);
-        window.addEventListener('orientationchange', handleResizeAndOrientation);
+    // --- MOBILE STABILITY LISTENERS ---
+    let resizeTimer;
+    function handleResizeAndOrientation() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            calendarView.render();
+        }, 150); 
+    }
+    window.addEventListener('resize', handleResizeAndOrientation);
+    window.addEventListener('orientationchange', handleResizeAndOrientation);
 
-        // --- PTO DATE SYNC ---
-        const sInput = document.getElementById('ptoStartDate');
-        const eInput = document.getElementById('ptoEndDate');
-        sInput.addEventListener('change', function() {
-            eInput.min = this.value;
-            eInput.value = this.value;
-        });
+    // --- PTO DATE SYNC (End Date follows Start Date) ---
+    const sInput = document.getElementById('ptoStartDate');
+    const eInput = document.getElementById('ptoEndDate');
+    sInput.addEventListener('change', function() {
+        eInput.min = this.value;
+        eInput.value = this.value;
     });
 
 </script>
