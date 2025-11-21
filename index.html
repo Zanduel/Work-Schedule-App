@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Pro: Final Stable App</title>
+    <title>Manager Pro: Final App</title>
     <style>
         /* =========================================
            CSS STYLING (How things look)
@@ -13,7 +13,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background-color: #f4f7f6; 
             padding: 20px; margin: 0; 
-            overflow-x: hidden; 
+            overflow-x: hidden; /* Prevents desktop overflow scrollbar */
         }
         
         .container { 
@@ -41,10 +41,7 @@
         /* --- CALENDAR GRID --- */
         #calendar-headers { display: grid; grid-template-columns: repeat(7, 1fr); background: #f9f9f9; border-bottom: 1px solid #ddd; }
         .day-header { text-align: center; padding: 12px 0; font-weight: bold; border-left: 1px solid #ddd; }
-        
-        /* 💡 RESTORING SIMPLE CALENDAR STRUCTURE */
         #calendar { flex-grow: 1; display: grid; grid-template-columns: repeat(7, 1fr); }
-        #calendar-wrapper { display: flex; flex-direction: column; flex-grow: 1; } 
         
         .day-cell { 
             border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; 
@@ -64,6 +61,22 @@
 
         /* --- EVENT PILLS --- */
         .event { font-size: 12px; padding: 4px 8px; border-radius: 4px; margin-top: 4px; color: white; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .event-shift { background: #4caf50; } 
+        .event-extra { background: #2196f3; } 
+        .event-pto { background: #ff9800; }   
+        .event-sick { background: #f44336; }  
+
+        /* Modals (Simplified for space) */
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 480px; max-height: 90vh; overflow-y: auto; }
+        
+        .btn-save { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-cancel { background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-delete { background: #f44336; color: white; margin-right: auto; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        
+        /* Lists */
+        .list-clean { list-style: none; padding: 0; margin-bottom: 15px;}
+        .pto-row { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 5px 0; border-bottom: 1px solid #eee;}
 
         .day-cell-header-mobile {
             font-size: 1.1em; font-weight: bold; color: #007bff; padding-bottom: 5px; border-bottom: 1px solid #eee; display: none; 
@@ -90,7 +103,10 @@
             .day-cell { min-height: 80px; padding: 4px; font-size: 0.8em; }
             .event { font-size: 10px; padding: 2px 4px; }
             .modal-content { width: 95%; margin: auto; padding: 15px; }
+            
+            /* 💡 FINAL FIX: FORCE 1-COLUMN STACKING FOR WEEK VIEW */
             .week-view #calendar { grid-template-columns: 1fr !important; } 
+            
             .week-view #calendar-headers { display: none; }
             .week-view .day-cell-header-mobile { display: block; }
         }
@@ -120,11 +136,8 @@
             <button class="btn-nav btn-pto" onclick="ui.openPTOListModal()">PTO List</button>
         </div>
     </div>
-    
-    <div id="calendar-wrapper">
-        <div id="calendar-headers"></div>
-        <div id="calendar"></div>
-    </div>
+    <div id="calendar-headers"></div>
+    <div id="calendar"></div>
 </div>
 
 <button id="resetDataBtn" onclick="app.resetAllData()">Reset All Data</button>
@@ -376,7 +389,6 @@
             this.grid = document.getElementById('calendar');
             this.headers = document.getElementById('calendar-headers');
             this.dateDisplay = document.getElementById('currentDateDisplay');
-            this.calendarWrapper = document.getElementById('calendar-wrapper'); 
         }
 
         next() { this.shiftDate(1); }
@@ -391,6 +403,7 @@
             
             // 💡 FIX: INTELLIGENT VIEW SWITCH FOR NARROW SCREENS
             if (mode === 'month' && window.innerWidth < 500) {
+                 // Force the stable Weekly stack if screen is too narrow for Monthly grid
                  alert("Monthly view is unstable on narrow screens. Switching to Weekly.");
                  mode = 'week'; 
             }
@@ -409,7 +422,6 @@
         render() {
             this.grid.innerHTML = '';
             this.headers.innerHTML = '';
-            
             if (this.viewMode === 'month') this.renderMonth();
             else if (this.viewMode === 'week') this.renderWeek();
             else if (this.viewMode === 'day') this.renderDay();
@@ -419,11 +431,11 @@
             if(this.schedule.hasPTO(dateStr)) {
                 cell.classList.add('has-pto-alert');
             }
-            this.renderContent(cell, dateStr, dateObj);
+            this.renderCellContent(cell, dateStr, dateObj);
             cell.addEventListener('click', () => ui.openDaySummary(dateStr));
         }
 
-        renderContent(cell, dateStr, dateObj) {
+        renderCellContent(cell, dateStr, dateObj) {
             const dayOfWeek = dateObj.getDay(); 
             this.associates.roster.forEach(person => {
                 const exception = this.schedule.getExceptionFor(person.name, dateStr);
@@ -821,22 +833,93 @@
         next: () => calendarView.next(),
         prev: () => calendarView.prev(),
         setView: (mode) => calendarView.setView(mode),
-        addAssociate: () => { /* ... */ },
-        removeAssociateFromDetail: () => { /* ... */ },
-        saveAvailabilityPattern: () => { /* ... */ },
-        addBulkPTO: () => { /* ... */ },
-        handleFormSubmit: (e) => { /* ... */ },
-        deleteEvent: () => { /* ... */ }
+        addAssociate: () => {
+            const name = document.getElementById('newAssociateName').value;
+            associateMgr.add(name);
+            document.getElementById('newAssociateName').value = '';
+            ui.renderAssociateList();
+            calendarView.render();
+        },
+        removeAssociateFromDetail: () => {
+            const name = document.getElementById('detailAssociateName').value;
+            if(confirm(`Remove ${name}?`)) {
+                associateMgr.remove(name);
+                ui.closeAssociateDetails();
+                ui.openAssociateModal();
+                calendarView.render();
+            }
+        },
+        saveAvailabilityPattern: () => {
+            const name = document.getElementById('detailAssociateName').value;
+            const start = document.getElementById('bulkStartTime').value;
+            const end = document.getElementById('bulkEndTime').value;
+            const activeDays = [];
+            document.querySelectorAll('.week-check input:checked').forEach(cb => {
+                activeDays.push(parseInt(cb.value));
+            });
+            associateMgr.updateSchedule(name, activeDays, start, end);
+            alert(`Schedule updated for ${name}.`);
+            calendarView.render();
+        },
+        
+        addBulkPTO: () => {
+            const name = document.getElementById('detailAssociateName').value;
+            const sInput = document.getElementById('ptoStartDate').value;
+            let eInput = document.getElementById('ptoEndDate').value;
+
+            if(!sInput) return alert("Please select a start date.");
+            if(!eInput) eInput = sInput; 
+            if(eInput < sInput) return alert("End date cannot be before start date.");
+
+            const [sY, sM, sD] = sInput.split('-').map(Number);
+            const [eY, eM, eD] = eInput.split('-').map(Number);
+            
+            let cursor = new Date(sY, sM - 1, sD, 12, 0, 0);
+            const end = new Date(eY, eM - 1, eD, 12, 0, 0);
+            
+            let addedCount = 0;
+            while(cursor <= end) {
+                const dateStr = calendarView.formatDate(cursor);
+                scheduleMgr.addOrUpdate({
+                    date: dateStr,
+                    name: name,
+                    type: 'pto',
+                    startTime: '', endTime: ''
+                });
+                cursor.setDate(cursor.getDate() + 1);
+                addedCount++;
+            }
+            alert(`${addedCount} days of PTO added for ${name}.`);
+            ui.closeModals(); 
+            calendarView.render();
+        },
+
+        handleFormSubmit: (e) => {
+            e.preventDefault();
+            const data = {
+                id: document.getElementById('eventId').value || null,
+                date: document.getElementById('eventDate').value,
+                name: document.getElementById('associateSelect').value,
+                type: document.getElementById('eventType').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value
+            };
+            scheduleMgr.addOrUpdate(data);
+            ui.closeModals();
+            calendarView.render();
+        },
+        deleteEvent: () => {
+            const id = document.getElementById('eventId').value;
+            if(id) { scheduleMgr.delete(id); ui.closeModals(); calendarView.render(); }
+        }
     };
 
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
     
     // --- FINAL INITIALIZATION ---
-    
-    // 1. Initial Render and View Setting
     calendarView.setView('month'); 
 
-    // 2. Mobile Stability Listeners
+    // --- MOBILE STABILITY LISTENERS ---
     let resizeTimer;
     function handleResizeAndOrientation() {
         clearTimeout(resizeTimer);
@@ -847,7 +930,7 @@
     window.addEventListener('resize', handleResizeAndOrientation);
     window.addEventListener('orientationchange', handleResizeAndOrientation);
 
-    // --- PTO DATE SYNC ---
+    // --- PTO DATE SYNC (End Date follows Start Date) ---
     const sInput = document.getElementById('ptoStartDate');
     const eInput = document.getElementById('ptoEndDate');
     sInput.addEventListener('change', function() {
