@@ -11,12 +11,13 @@
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background-color: #f4f7f6; /* 💡 LEARNING TIP: Change page background color here */
+            background-color: #f4f7f6; 
             padding: 20px; margin: 0; 
+            overflow-x: hidden; 
         }
         
         .container { 
-            max-width: 1200px; /* 💡 LEARNING TIP: Increase to 1600px for a wider calendar on desktop */
+            max-width: 1200px; 
             margin: 0 auto; 
             background: #fff; 
             border-radius: 12px; 
@@ -26,35 +27,14 @@
         }
         
         /* --- HEADER COLORS --- */
-        .header { 
-            padding: 20px; 
-            background: #007bff; /* 💡 LEARNING TIP: The main Blue Header color. Change to your brand color. */
-            color: white; 
-            display: flex; justify-content: space-between; align-items: center; 
-        }
-        
+        .header { padding: 20px; background: #007bff; color: white; display: flex; justify-content: space-between; align-items: center; }
         .header-left { display: flex; align-items: center; gap: 20px; }
-        
-        .btn-nav { 
-            background: rgba(255,255,255,0.2); 
-            border: none; color: white; padding: 10px 15px; border-radius: 6px; cursor: pointer; 
-        }
-        .btn-nav.active { 
-            background: white; 
-            color: #007bff; /* 💡 LEARNING TIP: Make this match the header background color */
-            font-weight: bold; 
-        }
+        .btn-nav { background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
+        .btn-nav.active { background: white; color: #007bff; font-weight: bold; }
         
         /* --- ACTION BUTTONS --- */
-        .btn-associate { 
-            background: #ffc107; /* Yellow */
-            color: #333; font-weight: bold; margin-left: 10px; 
-        }
-        .btn-pto { 
-            background: #ff5722; /* Orange-Red */
-            color: white; font-weight: bold; margin-left: 5px; 
-        }
-        .btn-pto:hover { background: #e64a19; }
+        .btn-associate { background: #ffc107; color: #333; font-weight: bold; margin-left: 10px; }
+        .btn-pto { background: #ff5722; color: white; font-weight: bold; margin-left: 5px; }
 
         #currentDateDisplay { font-size: 1.5rem; font-weight: 600; width: 300px; text-align: center; }
 
@@ -72,11 +52,7 @@
         .day-cell.other-month { background: #fafafa; color: #ccc; }
         
         /* --- RED ALERT FOR PTO DAYS --- */
-        .has-pto-alert {
-            /* 💡 LEARNING TIP: This controls the Red Border thickness and color */
-            border: 3px solid #d32f2f !important; 
-            background-color: #fff0f0; 
-        }
+        .has-pto-alert { border: 3px solid #d32f2f !important; background-color: #fff0f0; }
 
         /* View Specifics */
         .week-view .day-cell { min-height: 400px; }
@@ -85,82 +61,52 @@
 
         /* --- EVENT PILLS --- */
         .event { font-size: 12px; padding: 4px 8px; border-radius: 4px; margin-top: 4px; color: white; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        /* 💡 LEARNING TIP: Customize event colors here */
-        .event-shift { background: #4caf50; } /* Green */
-        .event-extra { background: #2196f3; } /* Blue */
-        .event-pto { background: #ff9800; }   /* Orange */
-        .event-sick { background: #f44336; }  /* Red */
 
+        .day-cell-header-mobile {
+            font-size: 1.1em; font-weight: bold; color: #007bff; padding-bottom: 5px; border-bottom: 1px solid #eee; display: none; 
+        }
+        
         /* Modals */
         .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 8px; width: 480px; max-height: 90vh; overflow-y: auto; }
         
-        /* Buttons */
         .btn-save { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
         .btn-cancel { background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
         .btn-delete { background: #f44336; color: white; margin-right: auto; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
         
-        /* Lists and PTO Rows */
+        /* Lists */
         .list-clean { list-style: none; padding: 0; margin-bottom: 15px;}
         .pto-row { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 5px 0; border-bottom: 1px solid #eee;}
-        .pto-name { font-weight: bold; font-size: 1.1em; color: #333; }
-        .pto-range { font-size: 0.9em; color: #666; margin-top: 2px; display: flex; align-items: center; gap: 5px;}
-        .day-cell-header-mobile {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #007bff;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #eee;
-            display: none; 
+
+        /* Week Grid - Clickable Buttons */
+        .week-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .week-check { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 2px solid #e0e0e0; padding: 15px 5px; border-radius: 8px; 
+            cursor: pointer; transition: all 0.2s ease; user-select: none;
         }
-        
+        .week-check:hover { border-color: #007bff; background-color: #f0f8ff; }
+        .week-check.active { background-color: #007bff; border-color: #0056b3; color: white; font-weight: bold; }
+        .week-check input { display: none; } /* Hide the native checkbox */
+
         /* ====================================================================
            MOBILE RESPONSIVENESS RULES 
            ==================================================================== */
         @media (max-width: 768px) {
-            body { padding: 0; }
+            body { padding: 0 !important; } 
             .container {
-                width: 100%;
-                max-width: 100%;
-                border-radius: 0;
-                padding: 0;
-                min-height: 100vh;
+                width: 100% !important; max-width: 100% !important; border-radius: 0; padding: 0; min-height: 100vh;
             }
-            .header {
-                flex-direction: column; 
-                padding: 10px;
-                gap: 10px;
-            }
-            #currentDateDisplay { width: auto; font-size: 1.25rem; }
-            .header-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
-            .btn-nav { padding: 8px 10px; font-size: 0.9em; }
-
-            .day-header { padding: 8px 0; font-size: 0.8em; }
-            .day-cell { min-height: 80px; padding: 4px; font-size: 0.8em; }
-            .event { font-size: 10px; padding: 2px 4px; }
-            .modal-content { width: 95%; margin: auto; padding: 15px; }
-
-            .week-view #calendar { grid-template-columns: 1fr; }
+            .header { flex-direction: column; padding: 10px; gap: 10px; }
+            .week-view #calendar { grid-template-columns: 1fr !important; }
             .week-view #calendar-headers { display: none; }
-            .week-view .day-cell-header-mobile { display: block; }
         }
 
-        /* 💡 NEW: PORTRAIT PHONE OPTIMIZATION */
         @media (max-width: 420px) {
-            .day-header {
-                font-size: 0.65em; 
-                padding: 5px 0;
-            }
-            .day-cell {
-                min-height: 60px; 
-                padding: 1px; 
-            }
-            .event {
-                font-size: 8px; 
-                padding: 1px 2px;
-            }
+            .day-header { font-size: 0.65em; padding: 5px 0; }
+            .day-cell { min-height: 60px; padding: 1px; }
+            .event { font-size: 8px; padding: 1px 2px; }
         }
-
     </style>
 </head>
 <body>
@@ -444,6 +390,15 @@
             this.render();
         }
         setView(mode) {
+            
+            // 💡 FIX: INTELLIGENT VIEW SWITCH FOR NARROW SCREENS
+            if (mode === 'month' && window.innerWidth < 500) {
+                 // Forces the stable Weekly stack if screen is too narrow for Monthly grid
+                 // We rely on the CSS media query to make the Weekly view stack vertically
+                 mode = 'week'; 
+                 alert("Monthly view requires a wider screen. Switching to stable Weekly view.");
+            }
+
             this.viewMode = mode;
             document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
             if(mode === 'month') document.getElementById('btnMonth').classList.add('active');
@@ -535,17 +490,9 @@
                 const day = new Date(startOfWeek);
                 day.setDate(startOfWeek.getDate() + i);
                 const dateStr = this.formatDate(day);
-                
                 this.headers.innerHTML += `<div class="day-header">${day.toLocaleDateString('en-US', {weekday:'short', month:'numeric', day:'numeric'})}</div>`;
-                
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
-                
-                const mobileHeader = document.createElement('div');
-                mobileHeader.className = 'day-cell-header-mobile';
-                mobileHeader.innerText = day.toLocaleDateString('en-US', {weekday:'long', month:'numeric', day:'numeric'});
-                cell.appendChild(mobileHeader);
-                
                 this.setupCell(cell, dateStr, day);
                 this.grid.appendChild(cell);
             }
@@ -764,6 +711,104 @@
 
     // --- MAIN APP CONTROLLER ---
 
+    class AssociateManager {
+        constructor() {
+            const saved = localStorage.getItem('associate_roster');
+            if(saved) this.roster = JSON.parse(saved);
+            else this.roster = [ { name: 'Zachary', schedule: {} }, { name: 'Cindy', schedule: {} } ];
+        }
+        save() { localStorage.setItem('associate_roster', JSON.stringify(this.roster)); }
+        add(name) { 
+            if (name && !this.roster.find(p => p.name === name)) {
+                this.roster.push({ name: name, schedule: {} });
+                this.save();
+            }
+        }
+        remove(name) { this.roster = this.roster.filter(p => p.name !== name); this.save(); }
+        get(name) { return this.roster.find(p => p.name === name); }
+        updateSchedule(name, dayIndexes, start, end) {
+            const person = this.get(name);
+            if(!person) return;
+            person.schedule = {}; 
+            dayIndexes.forEach(dayIndex => { person.schedule[dayIndex] = { start: start, end: end }; });
+            this.save();
+        }
+    }
+
+    class ScheduleManager {
+        constructor() {
+            const saved = localStorage.getItem('schedule_exceptions');
+            if(saved) this.exceptions = JSON.parse(saved);
+            else this.exceptions = [];
+        }
+        save() { localStorage.setItem('schedule_exceptions', JSON.stringify(this.exceptions)); }
+        
+        addOrUpdate(eventData) {
+            const index = this.exceptions.findIndex(e => e.id === eventData.id);
+            if (index >= 0) this.exceptions[index] = eventData;
+            else {
+                if(!eventData.id) eventData.id = Date.now().toString() + Math.random();
+                this.exceptions.push(eventData);
+            }
+            this.save();
+        }
+
+        delete(id) { this.exceptions = this.exceptions.filter(e => e.id !== id); this.save(); }
+        
+        deleteMultiple(idArray) {
+            this.exceptions = this.exceptions.filter(e => !idArray.includes(e.id));
+            this.save();
+        }
+
+        getExceptionFor(name, dateStr) { return this.exceptions.find(e => e.date === dateStr && e.name === name); }
+        getEventById(id) { return this.exceptions.find(e => e.id === id); }
+        
+        hasPTO(dateStr) {
+            return this.exceptions.some(e => e.date === dateStr && (e.type === 'pto' || e.type === 'sick'));
+        }
+        
+        getAllPTOs() {
+            return this.exceptions
+                .filter(e => e.type === 'pto' || e.type === 'sick')
+                .sort((a,b) => new Date(a.date) - new Date(b.date));
+        }
+
+        getGroupedPTOs() {
+            const raw = this.getAllPTOs();
+            if (raw.length === 0) return [];
+
+            raw.sort((a, b) => {
+                if (a.name !== b.name) return a.name.localeCompare(b.name);
+                return new Date(a.date) - new Date(b.date);
+            });
+
+            const groups = [];
+            let current = null;
+
+            for (const event of raw) {
+                const dParts = event.date.split('-').map(Number);
+                const evtDate = new Date(dParts[0], dParts[1]-1, dParts[2]);
+
+                if (current && current.name === event.name && current.type === event.type) {
+                    const prevParts = current.endDate.split('-').map(Number);
+                    const prevDate = new Date(prevParts[0], prevParts[1]-1, prevParts[2]);
+                    const diffTime = Math.abs(evtDate - prevDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays === 1) {
+                        current.endDate = event.date;
+                        current.ids.push(event.id); 
+                        continue;
+                    }
+                }
+                if (current) groups.push(current);
+                current = { name: event.name, type: event.type, startDate: event.date, endDate: event.date, ids: [event.id] };
+            }
+            if (current) groups.push(current);
+            return groups;
+        }
+    }
+
     const associateMgr = new AssociateManager();
     const scheduleMgr = new ScheduleManager();
     const calendarView = new CalendarView(associateMgr, scheduleMgr);
@@ -861,27 +906,41 @@
     };
 
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
-    calendarView.render();
-
-    const sInput = document.getElementById('ptoStartDate');
-    const eInput = document.getElementById('ptoEndDate');
-    sInput.addEventListener('change', function() {
-        eInput.min = this.value;
-        eInput.value = this.value;
-    });
     
-    // 💡 NEW: ORIENTATION CHANGE FIX
-    let resizeTimer;
-    function handleResizeAndOrientation() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            // This forces a complete redraw after the browser finishes rotating
-            calendarView.render();
-        }, 150); 
-    }
-    window.addEventListener('resize', handleResizeAndOrientation);
-    window.addEventListener('orientationchange', handleResizeAndOrientation);
+    // --- FINAL INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', (event) => {
+        
+        // 1. Instantiate Classes
+        const associateMgr = new AssociateManager();
+        const scheduleMgr = new ScheduleManager();
+        const calendarView = new CalendarView(associateMgr, scheduleMgr);
+        const ui = new UIManager();
+        
+        // 2. Set Default View (This fixes the blank load)
+        calendarView.setView('month'); 
 
+        // 3. Attach Global Handlers (Mobile Stability)
+        let resizeTimer;
+        function handleResizeAndOrientation() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                calendarView.render();
+            }, 150); 
+        }
+        window.addEventListener('resize', handleResizeAndOrientation);
+        window.addEventListener('orientationchange', handleResizeAndOrientation);
+
+        // 4. Attach Form Submit Handlers
+        document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
+        
+        // --- PTO DATE SYNC ---
+        const sInput = document.getElementById('ptoStartDate');
+        const eInput = document.getElementById('ptoEndDate');
+        sInput.addEventListener('change', function() {
+            eInput.min = this.value;
+            eInput.value = this.value;
+        });
+    });
 </script>
 </body>
 </html>
