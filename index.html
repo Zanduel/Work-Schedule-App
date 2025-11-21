@@ -9,16 +9,11 @@
            CSS STYLING (How things look)
            ========================================= */
 
-        html, body {
-            /* 💡 FIX: HIDE HORIZONTAL SCROLLBAR GLOBALLY */
-            overflow-x: hidden;
-            margin: 0;
-        }
-
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background-color: #f4f7f6; 
-            padding: 20px; 
+            padding: 20px; margin: 0; 
+            overflow-x: hidden; 
         }
         
         .container { 
@@ -71,17 +66,28 @@
             font-size: 1.1em; font-weight: bold; color: #007bff; padding-bottom: 5px; border-bottom: 1px solid #eee; display: none; 
         }
         
+        /* Modals */
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 480px; max-height: 90vh; overflow-y: auto; }
+        
+        .btn-save { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-cancel { background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-delete { background: #f44336; color: white; margin-right: auto; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        
+        /* Lists */
+        .list-clean { list-style: none; padding: 0; margin-bottom: 15px;}
+        .pto-row { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 5px 0; border-bottom: 1px solid #eee;}
+
+        /* Week Grid */
+        .week-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+
         /* ====================================================================
            MOBILE RESPONSIVENESS RULES 
            ==================================================================== */
         @media (max-width: 768px) {
             body { padding: 0 !important; } 
             .container {
-                width: 100% !important;
-                max-width: 100% !important;
-                border-radius: 0;
-                padding: 0;
-                min-height: 100vh;
+                width: 100% !important; max-width: 100% !important; border-radius: 0; padding: 0; min-height: 100vh;
             }
             .header { flex-direction: column; padding: 10px; gap: 10px; }
             #currentDateDisplay { width: auto; font-size: 1.25rem; }
@@ -92,7 +98,7 @@
             .day-cell { min-height: 80px; padding: 4px; font-size: 0.8em; }
             .event { font-size: 10px; padding: 2px 4px; }
             .modal-content { width: 95%; margin: auto; padding: 15px; }
-            .week-view #calendar { grid-template-columns: 1fr !important; } /* Vertical Stack */
+            .week-view #calendar { grid-template-columns: 1fr !important; }
             .week-view #calendar-headers { display: none; }
             .week-view .day-cell-header-mobile { display: block; }
         }
@@ -390,8 +396,8 @@
             // 💡 FIX: INTELLIGENT VIEW SWITCH FOR NARROW SCREENS
             if (mode === 'month' && window.innerWidth < 500) {
                  // Force the stable Weekly stack if screen is too narrow for Monthly grid
-                 mode = 'week'; 
                  alert("Monthly view is unstable on narrow screens. Switching to Weekly.");
+                 mode = 'week'; 
             }
 
             this.viewMode = mode;
