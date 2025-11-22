@@ -707,106 +707,6 @@
         }
     }
 
-    // --- MAIN APP CONTROLLER ---
-
-    class AssociateManager {
-        constructor() {
-            const saved = localStorage.getItem('associate_roster');
-            if(saved) this.roster = JSON.parse(saved);
-            else this.roster = [ { name: 'Zachary', schedule: {} }, { name: 'Cindy', schedule: {} } ];
-        }
-        save() { localStorage.setItem('associate_roster', JSON.stringify(this.roster)); }
-        add(name) { 
-            if (name && !this.roster.find(p => p.name === name)) {
-                this.roster.push({ name: name, schedule: {} });
-                this.save();
-            }
-        }
-        remove(name) { this.roster = this.roster.filter(p => p.name !== name); this.save(); }
-        get(name) { return this.roster.find(p => p.name === name); }
-        updateSchedule(name, dayIndexes, start, end) {
-            const person = this.get(name);
-            if(!person) return;
-            person.schedule = {}; 
-            dayIndexes.forEach(dayIndex => { person.schedule[dayIndex] = { start: start, end: end }; });
-            this.save();
-        }
-    }
-
-    class ScheduleManager {
-        constructor() {
-            const saved = localStorage.getItem('schedule_exceptions');
-            if(saved) this.exceptions = JSON.parse(saved);
-            else this.exceptions = [];
-        }
-        save() { localStorage.setItem('schedule_exceptions', JSON.stringify(this.exceptions)); }
-        
-        addOrUpdate(eventData) {
-            const index = this.exceptions.findIndex(e => e.id === eventData.id);
-            if (index >= 0) this.exceptions[index] = eventData;
-            else {
-                if(!eventData.id) eventData.id = Date.now().toString() + Math.random();
-                this.exceptions.push(eventData);
-            }
-            this.save();
-        }
-
-        delete(id) { this.exceptions = this.exceptions.filter(e => e.id !== id); this.save(); }
-        
-        deleteMultiple(idArray) {
-            this.exceptions = this.exceptions.filter(e => !idArray.includes(e.id));
-            this.save();
-        }
-
-        getExceptionFor(name, dateStr) { return this.exceptions.find(e => e.date === dateStr && e.name === name); }
-        getEventById(id) { return this.exceptions.find(e => e.id === id); }
-        
-        hasPTO(dateStr) {
-            return this.exceptions.some(e => e.date === dateStr && (e.type === 'pto' || e.type === 'sick'));
-        }
-        
-        getAllPTOs() {
-            return this.exceptions
-                .filter(e => e.type === 'pto' || e.type === 'sick')
-                .sort((a,b) => new Date(a.date) - new Date(b.date));
-        }
-
-        getGroupedPTOs() {
-            const raw = this.getAllPTOs();
-            if (raw.length === 0) return [];
-
-            raw.sort((a, b) => {
-                if (a.name !== b.name) return a.name.localeCompare(b.name);
-                return new Date(a.date) - new Date(b.date);
-            });
-
-            const groups = [];
-            let current = null;
-
-            for (const event of raw) {
-                const dParts = event.date.split('-').map(Number);
-                const evtDate = new Date(dParts[0], dParts[1]-1, dParts[2]);
-
-                if (current && current.name === event.name && current.type === event.type) {
-                    const prevParts = current.endDate.split('-').map(Number);
-                    const prevDate = new Date(prevParts[0], prevParts[1]-1, prevParts[2]);
-                    const diffTime = Math.abs(evtDate - prevDate);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    if (diffDays === 1) {
-                        current.endDate = event.date;
-                        current.ids.push(event.id); 
-                        continue;
-                    }
-                }
-                if (current) groups.push(current);
-                current = { name: event.name, type: event.type, startDate: event.date, endDate: event.date, ids: [event.id] };
-            }
-            if (current) groups.push(current);
-            return groups;
-        }
-    }
-
     const app = {
         resetAllData: () => {
             if(confirm("Are you sure you want to RESET EVERYTHING? This cannot be undone.")) {
@@ -901,7 +801,8 @@
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
     
     // --- FINAL INITIALIZATION ---
-    // Instantiation and initial render is placed at the end for reliable synchronous execution.
+    // The classes must be defined globally before the app runs.
+    // We run the final logic synchronous execution (at the bottom of the file).
     calendarView.setView('month'); 
 
     // --- MOBILE STABILITY LISTENERS ---
