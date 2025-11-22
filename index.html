@@ -392,6 +392,7 @@
             
             // 💡 FIX: INTELLIGENT VIEW SWITCH FOR NARROW SCREENS
             if (mode === 'month' && window.innerWidth < 500) {
+                 // Force the stable Weekly stack if screen is too narrow for Monthly grid
                  alert("Monthly view is unstable on narrow screens. Switching to Weekly.");
                  mode = 'week'; 
             }
@@ -900,8 +901,7 @@
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
     
     // --- FINAL INITIALIZATION ---
-    // The classes must be defined globally before the app runs.
-    // We run the final logic synchronous execution (at the bottom of the file).
+    // Instantiation and initial render is placed at the end for reliable synchronous execution.
     calendarView.setView('month'); 
 
     // --- MOBILE STABILITY LISTENERS ---
