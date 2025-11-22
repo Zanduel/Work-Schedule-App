@@ -85,7 +85,6 @@
             border: 2px solid #e0e0e0; padding: 15px 5px; border-radius: 8px; 
             cursor: pointer; transition: all 0.2s ease; user-select: none;
         }
-        .week-check:hover { border-color: #007bff; background-color: #f0f8ff; }
         .week-check.active { background-color: #007bff; border-color: #0056b3; color: white; font-weight: bold; }
         .week-check input { display: none; }
 
@@ -393,7 +392,6 @@
             
             // 💡 FIX: INTELLIGENT VIEW SWITCH FOR NARROW SCREENS
             if (mode === 'month' && window.innerWidth < 500) {
-                 // Force the stable Weekly stack if screen is too narrow for Monthly grid
                  alert("Monthly view is unstable on narrow screens. Switching to Weekly.");
                  mode = 'week'; 
             }
@@ -901,34 +899,30 @@
 
     document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
     
-    window.addEventListener('DOMContentLoaded', (event) => {
-        
-        const associateMgr = new AssociateManager();
-        const scheduleMgr = new ScheduleManager();
-        const calendarView = new CalendarView(associateMgr, scheduleMgr);
-        const ui = new UIManager();
-        
-        calendarView.setView('month'); 
+    // --- FINAL INITIALIZATION ---
+    // The classes must be defined globally before the app runs.
+    // We run the final logic synchronous execution (at the bottom of the file).
+    calendarView.setView('month'); 
 
-        let resizeTimer;
-        function handleResizeAndOrientation() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => {
-                calendarView.render();
-            }, 150); 
-        }
-        window.addEventListener('resize', handleResizeAndOrientation);
-        window.addEventListener('orientationchange', handleResizeAndOrientation);
+    // --- MOBILE STABILITY LISTENERS ---
+    let resizeTimer;
+    function handleResizeAndOrientation() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            calendarView.render();
+        }, 150); 
+    }
+    window.addEventListener('resize', handleResizeAndOrientation);
+    window.addEventListener('orientationchange', handleResizeAndOrientation);
 
-        document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
-        
-        const sInput = document.getElementById('ptoStartDate');
-        const eInput = document.getElementById('ptoEndDate');
-        sInput.addEventListener('change', function() {
-            eInput.min = this.value;
-            eInput.value = this.value;
-        });
+    // --- PTO DATE SYNC (End Date follows Start Date) ---
+    const sInput = document.getElementById('ptoStartDate');
+    const eInput = document.getElementById('ptoEndDate');
+    sInput.addEventListener('change', function() {
+        eInput.min = this.value;
+        eInput.value = this.value;
     });
+
 </script>
 </body>
 </html>
