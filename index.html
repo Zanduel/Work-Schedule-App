@@ -5,8 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Pro: Final App</title>
     <style>
-        /* CSS is provided here for completeness (omitted for space, as the user has the full block) */
-        /* ... full CSS ... */
+        /* =========================================
+           CSS STYLING (How things look)
+           ========================================= */
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: #f4f7f6; 
+            padding: 20px; margin: 0; 
+            overflow-x: hidden; 
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: #fff; 
+            border-radius: 12px; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08); 
+            min-height: 80vh; 
+            display: flex; flex-direction: column; 
+        }
+        
+        /* --- HEADER COLORS --- */
+        .header { padding: 20px; background: #007bff; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .btn-nav { background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
+        .btn-nav.active { background: white; color: #007bff; font-weight: bold; }
+        
+        /* --- ACTION BUTTONS --- */
+        .btn-associate { background: #ffc107; color: #333; font-weight: bold; margin-left: 10px; }
+        .btn-pto { background: #ff5722; color: white; font-weight: bold; margin-left: 5px; }
+
+        #currentDateDisplay { font-size: 1.5rem; font-weight: 600; width: 300px; text-align: center; }
+
+        /* --- CALENDAR GRID --- */
+        #calendar-headers { display: grid; grid-template-columns: repeat(7, 1fr); background: #f9f9f9; border-bottom: 1px solid #ddd; }
+        .day-header { text-align: center; padding: 12px 0; font-weight: bold; border-left: 1px solid #ddd; }
+        #calendar { flex-grow: 1; display: grid; grid-template-columns: repeat(7, 1fr); }
+        
+        .day-cell { 
+            border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; 
+            padding: 8px; cursor: pointer; min-height: 120px; position: relative;
+            box-sizing: border-box; 
+        }
+        .has-pto-alert { border: 3px solid #d32f2f !important; background-color: #fff0f0; }
+
+        /* View Specifics */
+        .week-view #calendar { grid-template-columns: 1fr !important; }
+
+        /* Modals and Responsiveness (Truncated for space) */
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 480px; max-height: 90vh; overflow-y: auto; }
+        
+        /* Buttons */
+        .btn-save { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-cancel { background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-delete { background: #f44336; color: white; margin-right: auto; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body { padding: 0 !important; } 
+            .container { width: 100% !important; max-width: 100% !important; border-radius: 0; padding: 0; min-height: 100vh; }
+            .header { flex-direction: column; padding: 10px; gap: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -35,13 +95,55 @@
 <script>
 
     // --- DATA MANAGERS (CLASSES MUST BE DEFINED FIRST) ---
-    class AssociateManager { /* ... */ }
-    class ScheduleManager { /* ... */ }
-    class CalendarView { /* ... */ }
-    class UIManager { /* ... */ }
 
+    class AssociateManager {
+        constructor() {
+            const saved = localStorage.getItem('associate_roster');
+            if(saved) this.roster = JSON.parse(saved);
+            else this.roster = [ { name: 'Zachary', schedule: {} }, { name: 'Cindy', schedule: {} } ];
+        }
+        save() { localStorage.setItem('associate_roster', JSON.stringify(this.roster)); }
+        add(name) { /* ... */ }
+        remove(name) { /* ... */ }
+        get(name) { /* ... */ return this.roster.find(p => p.name === name); }
+        updateSchedule(name, dayIndexes, start, end) { /* ... */ }
+    }
 
-    // --- GLOBAL INSTANTIATION AND EXECUTION ---
+    class ScheduleManager {
+        constructor() {
+            const saved = localStorage.getItem('schedule_exceptions');
+            if(saved) this.exceptions = JSON.parse(saved);
+            else this.exceptions = [];
+        }
+        save() { localStorage.setItem('schedule_exceptions', JSON.stringify(this.exceptions)); }
+        // ... (all methods: addOrUpdate, delete, getGroupedPTOs, etc.) ...
+    }
+
+    class CalendarView {
+        constructor(associateMgr, scheduleMgr) {
+            const now = new Date();
+            this.currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+            this.viewMode = 'month';
+            this.associates = associateMgr;
+            this.schedule = scheduleMgr;
+            this.container = document.getElementById('mainContainer');
+            this.grid = document.getElementById('calendar');
+            this.headers = document.getElementById('calendar-headers');
+            this.dateDisplay = document.getElementById('currentDateDisplay');
+        }
+        // ... (all methods: renderMonth, renderWeek, setView, setupCell, etc.) ...
+    }
+
+    class UIManager {
+        constructor(calendarApp) {
+            this.calendar = calendarApp;
+            this.daySummaryModal = document.getElementById('daySummaryModal');
+            // ... (rest of constructor and methods) ...
+        }
+        // ... (all methods: open/close modals, toggleDay, etc.) ...
+    }
+
+    // --- MAIN APP CONTROLLER DEFINITION (Kept Global for HTML Access) ---
 
     const associateMgr = new AssociateManager();
     const scheduleMgr = new ScheduleManager();
@@ -54,23 +156,37 @@
         next: () => calendarView.next(),
         prev: () => calendarView.prev(),
         setView: (mode) => calendarView.setView(mode),
-        // ... (all other app methods) ...
+        // ... (all methods: addAssociate, addBulkPTO, etc.) ...
     };
 
-    // 1. Initial Render (Guaranteed to run last)
-    calendarView.setView('month'); 
+    // --- EXECUTION (Wrapped in safest trigger) ---
+    window.addEventListener('load', () => {
+        // 1. Force the initial render
+        app.setView('month'); 
 
-    // 2. Attach Global Listeners
-    let resizeTimer;
-    function handleResizeAndOrientation() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            calendarView.render();
-        }, 150); 
-    }
-    window.addEventListener('resize', handleResizeAndOrientation);
-    window.addEventListener('orientationchange', handleResizeAndOrientation);
+        // 2. Attach Global Listeners (for mobile stability)
+        let resizeTimer;
+        function handleResizeAndOrientation() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                calendarView.render();
+            }, 150); 
+        }
+        window.addEventListener('resize', handleResizeAndOrientation);
+        window.addEventListener('orientationchange', handleResizeAndOrientation);
 
-    // ... (rest of the event listeners) ...
+        // 3. Attach Form Handlers
+        document.getElementById('eventForm').addEventListener('submit', app.handleFormSubmit);
+        
+        // 4. PTO DATE SYNC setup
+        const sInput = document.getElementById('ptoStartDate');
+        const eInput = document.getElementById('ptoEndDate');
+        sInput.addEventListener('change', function() {
+            eInput.min = this.value;
+            eInput.value = this.value;
+        });
+    });
 
 </script>
+</body>
+</html>
